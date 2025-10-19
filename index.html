@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🐎 馬の部位インタラクティブ解説</title>
+  <meta name="description" content="馬の部位をタップすると『説明・食べ方・調理の仕方・食感』がその場で表示されるワンページ完結ツール。" />
+  <style>
+    :root{
+      --bg:#0c1020; --card:#12192b; --ink:#e9f1ff; --muted:#9eb0d1; --accent:#6ea8ff; --ok:#a6ffb1; --warn:#ffd27a;
+      --panel:#0f1526; --line:#223155; --hit:#5db0ff55; --sel:#6ea8ff99;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+      background:linear-gradient(180deg, #0b1020 0%, #0a0f1e 100%); color:var(--ink);
+    }
+    header{padding:20px 16px 8px;}
+    h1{margin:0 0 4px; font-size:clamp(20px,3vw,28px); letter-spacing:0.02em}
+    .sub{color:var(--muted); font-size:14px}
+
+    .wrap{display:grid; grid-template-columns:1.2fr 1fr; gap:16px; padding:12px 16px 24px; max-width:1200px; margin:auto}
+    @media (max-width: 960px){ .wrap{ grid-template-columns:1fr; } }
+
+    .stage{background:var(--card); border:1px solid var(--line); border-radius:18px; padding:12px; position:relative;}
+    .legend{display:flex; gap:8px; flex-wrap:wrap; padding:8px 8px 0;}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0d1426; border:1px solid var(--line); color:var(--muted); font-size:12px}
+    .badge i{width:10px; height:10px; border-radius:2px; background:var(--accent); display:inline-block}
+
+    /* SVG area */
+    .svgbox{position:relative; aspect-ratio: 16/9; width:100%; background:radial-gradient(1200px 600px at 50% 10%, #11203b 0%, #0c1324 40%, #0b1020 100%); border-radius:14px; overflow:hidden; border:1px solid var(--line)}
+    svg{display:block; width:100%; height:100%}
+    .part{fill:#89a7d944; stroke:#8fb4ff66; stroke-width:1.2; cursor:pointer; transition:all .15s ease}
+    .part:hover{fill:var(--hit);}
+    .part[aria-selected="true"]{fill:var(--sel); stroke:#bcd6ff;}
+
+    .label{font-size:12px; fill:#cfe1ff; text-shadow:0 1px 0 #0008}
+
+    /* Side panel */
+    .panel{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden}
+    .panel header{padding:14px 16px; border-bottom:1px solid var(--line);}
+    .panel h2{margin:0; font-size:18px}
+    .chip{color:var(--muted); font-size:12px}
+
+    .tabs{display:flex; gap:6px; padding:10px; border-bottom:1px solid var(--line); overflow:auto}
+    .tab{flex:0 0 auto; padding:8px 12px; background:#0e1528; border:1px solid var(--line); color:var(--muted); border-radius:10px; cursor:pointer; font-size:13px}
+    .tab[aria-selected="true"]{background:#15213a; color:var(--ink); border-color:#34508a}
+
+    .content{padding:14px 16px; min-height:180px}
+    .content h3{margin:0 0 6px; font-size:14px; color:var(--muted)}
+    .content p{margin:0 0 10px; line-height:1.8}
+    .hint{font-size:12px; color:var(--muted); padding:8px 16px 16px}
+
+    /* Footer buttons */
+    .foot{display:flex; gap:8px; padding:10px; border-top:1px solid var(--line); background:#0d1426}
+    .btn{flex:1; padding:10px 12px; text-align:center; background:#132142; color:var(--ink); border:1px solid #284278; border-radius:12px; cursor:pointer; font-size:14px}
+    .btn.secondary{background:#10182d; color:var(--muted)}
+
+    /* Toast */
+    .toast{position:fixed; inset:auto 16px 16px auto; background:#101a31; border:1px solid var(--line); color:var(--ink); padding:10px 12px; border-radius:12px; opacity:0; transform:translateY(8px); transition:.2s ease; pointer-events:none}
+    .toast.show{opacity:1; transform:translateY(0)}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐴 馬の部位をタップ ▶ 情報がその場で開く</h1>
+    <div class="sub">ページ遷移なし・ワンページ完結。SVGクリックで <b>説明／食べ方／調理の仕方／食感</b> を切替表示。</div>
+  </header>
+
+  <div class="wrap">
+    <!-- 左：インタラクティブSVG -->
+    <section class="stage">
+      <div class="legend">
+        <span class="badge"><i></i> タップで選択／もう一度で解除</span>
+        <span class="badge"><i style="background:var(--ok)"></i> モバイル対応</span>
+        <span class="badge"><i style="background:var(--warn)"></i> データは右パネルの［編集モード］で更新</span>
+      </div>
+      <div class="svgbox" id="svgbox">
+        <!-- 簡易シルエット（差し替えOK）：部位は大まかな位置を示すデモ。実運用では正確なSVGに差し替えてください。 -->
+        <svg viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ttl desc">
+          <title id="ttl">馬の部位シルエット（デモ）</title>
+          <desc id="desc">シルエット上のパーツをタップして詳細を表示します。</desc>
+
+          <!-- 体のシルエット（ざっくり） -->
+          <path d="M120,220 C180,160 300,130 420,150 C520,165 610,210 700,230 C750,240 790,250 820,280 C780,300 760,330 720,350 C680,370 640,380 600,375 C520,365 460,350 380,350 C320,350 260,360 210,360 C160,360 130,345 110,320 C100,300 98,280 120,220 Z" fill="#0e1730" stroke="#24365e"/>
+
+          <!-- 部位領域（demo）-->
+          <g id="parts" fill="none">
+            <path class="part" data-key="ロース" d="M300,200 C360,185 430,185 490,195 C520,200 540,210 560,220 C520,230 480,235 440,235 C390,235 350,230 310,220 Z"/>
+            <path class="part" data-key="ヒレ" d="M510,205 C540,210 565,220 590,235 C560,245 530,248 500,248 C485,240 490,225 510,205 Z"/>
+            <path class="part" data-key="バラ" d="M260,230 C330,250 420,260 520,260 C500,280 470,295 420,305 C360,315 300,300 250,275 Z"/>
+            <path class="part" data-key="フタエゴ" d="M200,240 C240,250 260,265 270,285 C240,290 210,288 190,275 C185,260 188,248 200,240 Z"/>
+            <path class="part" data-key="タテガミ" d="M250,175 C290,160 340,150 390,148 C350,160 320,175 300,195 C280,192 265,185 250,175 Z"/>
+            <path class="part" data-key="内もも" d="M420,310 C470,305 520,300 560,295 C545,320 520,338 485,348 C450,355 420,350 395,335 Z"/>
+            <path class="part" data-key="外もも" d="M560,295 C600,290 640,285 680,280 C675,305 655,325 620,340 C590,350 565,345 545,330 Z"/>
+            <path class="part" data-key="ハツ" d="M610,245 C635,250 660,255 685,265 C660,272 635,275 610,272 C600,265 600,255 610,245 Z"/>
+            <path class="part" data-key="レバー" d="M640,270 C670,275 700,285 725,300 C700,305 675,308 650,306 C635,298 635,285 640,270 Z"/>
+          </g>
+
+          <!-- ラベル（ざっくり） -->
+          <g fill="currentColor">
+            <text class="label" x="360" y="210">ロース</text>
+            <text class="label" x="535" y="210">ヒレ</text>
+            <text class="label" x="420" y="280">バラ</text>
+            <text class="label" x="215" y="270">フタエゴ</text>
+            <text class="label" x="300" y="170">タテガミ</text>
+            <text class="label" x="445" y="330">内もも</text>
+            <text class="label" x="595" y="330">外もも</text>
+            <text class="label" x="630" y="260">ハツ</text>
+            <text class="label" x="690" y="300">レバー</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 右：情報パネル -->
+    <aside class="panel" id="panel">
+      <header>
+        <h2 id="partName">部位をタップしてください</h2>
+        <div class="chip" id="chip">—</div>
+      </header>
+      <nav class="tabs" role="tablist" aria-label="情報タブ">
+        <button class="tab" role="tab" aria-selected="true" data-tab="desc">説明</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="eat">食べ方</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="cook">調理の仕方</button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="texture">食感</button>
+      </nav>
+      <div class="content" id="content">
+        <h3>ガイド</h3>
+        <p>左のシルエットから部位を選ぶと、このエリアに各種情報が表示されます。ページ遷移はありません。</p>
+        <p>スマホではピンチで拡大・スワイプで移動できます（ブラウザ機能）。</p>
+      </div>
+      <div class="hint">※ 表示データはファイル内の <code>DATA</code> で編集できます。実運用では正確なSVGと差し替えてください。</div>
+      <div class="foot">
+        <button class="btn" id="editBtn">編集モード</button>
+        <button class="btn secondary" id="clearBtn">選択解除</button>
+      </div>
+    </aside>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ==============================
+    // 1) データ辞書（ここを書き換えれば文言更新OK）
+    // ==============================
+    const DATA = {
+      "ロース": {
+        desc: "背中の中心付近。筋繊維がきめ細かく、馬刺しの王道部位。クセが少なく上品。",
+        eat: "薄切りで馬刺し。醤油＋生姜／にんにく、甘めの九州醤油も好相性。",
+        cook: "火入れなら表面をサッと炙り（タタキ）。厚切りは低温調理でしっとり。",
+        texture: "柔らかめでしっとり。舌の上でとろける上質な赤身感。"
+      },
+      "ヒレ": {
+        desc: "腰の内側にある最も柔らかい赤身。中央のシャトーブリアンは希少。",
+        eat: "馬刺しの最上位。塩＋ごま油を少量で甘みを引き立てるのも◎。",
+        cook: "厚めは低温調理。焼くなら強火短時間で。",
+        texture: "非常にやわらかい。繊維が細かくスッと噛み切れる。"
+      },
+      "バラ": {
+        desc: "あばら周り。赤身と脂の層がありコク深い。",
+        eat: "刺身の他、甘辛ダレで漬けて丼やユッケ風も人気。",
+        cook: "焼きは脂が落ちてジューシー。煮込みでも出汁が濃い。",
+        texture: "赤身の旨味＋脂のコク。やや噛み応えあり。"
+      },
+      "フタエゴ": {
+        desc: "皮下脂肪と赤身が三層になった希少部位。見た目が“二重”に見えることから。",
+        eat: "薄くスライスして馬刺し。辛子味噌や甘口醤油に合う。",
+        cook: "冷やして脂を落ち着かせてから切るときれいに。",
+        texture: "コリコリ感と脂の甘みのコントラスト。"
+      },
+      "タテガミ": {
+        desc: "首のたてがみ下の脂身（コウネ）。単体より赤身と合わせる“紅白刺し”が定番。",
+        eat: "ロース等の赤身と1:1で重ねて。塩や甘口醤油で。",
+        cook: "半冷凍で薄く引くと崩れにくい。",
+        texture: "ぷるぷる・ねっとり。口溶けが良い。"
+      },
+      "内もも": {
+        desc: "後肢の内側。脂が少なく高タンパク。",
+        eat: "ヘルシーに刺身／たたき。わさび醤油も◎。",
+        cook: "低温調理でしっとり。薄衣のカツも相性良し。",
+        texture: "しっかりめの噛み応え。旨味濃い赤身。"
+      },
+      "外もも": {
+        desc: "後肢外側。大きな筋肉で旨味は濃いがやや硬め。",
+        eat: "薄切り刺し、ユッケ風、漬け。",
+        cook: "繊維を断ち切るようにカット。煮込み・佃煮も。",
+        texture: "やや硬めで肉々しい噛み心地。"
+      },
+      "ハツ": {
+        desc: "心臓。鮮度が命でクセ少なめの人気ホルモン。",
+        eat: "ごま油＋塩、酢味噌。軽く炙って香り出しも。",
+        cook: "薄切りでサッと焼き。",
+        texture: "コリッと小気味よい歯応え。噛むほどに旨味。"
+      },
+      "レバー": {
+        desc: "肝臓。濃厚で鉄分リッチ。※生食は各自治体の基準に従ってください。",
+        eat: "加熱派はごま油塩／甘辛ダレ。",
+        cook: "臭み抜きは血抜き＋牛乳。火入れは中心レア寄りでふわっと。",
+        texture: "ねっとり濃密。加熱でほろっとほどける。"
+      }
+    };
+
+    // ==============================
+    // 2) 基本UI制御
+    // ==============================
+    const $ = (q, el=document) => el.querySelector(q);
+    const $$ = (q, el=document) => [...el.querySelectorAll(q)];
+
+    const partName = $("#partName");
+    const chip = $("#chip");
+    const content = $("#content");
+    const tabs = $$(".tab");
+    const parts = $$(".part");
+    const editBtn = $("#editBtn");
+    const clearBtn = $("#clearBtn");
+    const toast = $("#toast");
+
+    let selectedKey = null;
+    let activeTab = "desc"; // desc | eat | cook | texture
+    let editMode = false;
+
+    function showToast(msg){
+      toast.textContent = msg; toast.classList.add("show");
+      clearTimeout(showToast.tid); showToast.tid = setTimeout(()=>toast.classList.remove("show"), 1400);
+    }
+
+    function renderPanel(){
+      if(!selectedKey){
+        partName.textContent = "部位をタップしてください";
+        chip.textContent = "—";
+        content.innerHTML = `<h3>ガイド</h3>
+          <p>左のシルエットから部位を選ぶと、このエリアに各種情報が表示されます。ページ遷移はありません。</p>`;
+        return;
+      }
+      const data = DATA[selectedKey];
+      partName.textContent = selectedKey;
+      chip.textContent = `タブ：${tabLabel(activeTab)}`;
+      const body = (data?.[activeTab] ?? "未設定").replace(/\n/g, "<br>");
+
+      if(!editMode){
+        content.innerHTML = `<h3>${tabLabel(activeTab)}</h3><p>${body}</p>`;
+      }else{
+        content.innerHTML = `<h3>${tabLabel(activeTab)}（編集）</h3>
+          <textarea id="editor" style="width:100%;min-height:180px;background:#0c1428;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px">${escapeHtml(data?.[activeTab] ?? "")}</textarea>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn" id="saveBtn">保存</button>
+            <button class="btn secondary" id="cancelBtn">キャンセル</button>
+          </div>`;
+        $("#saveBtn").onclick = () => {
+          const v = $("#editor").value;
+          if(!DATA[selectedKey]) DATA[selectedKey] = {};
+          DATA[selectedKey][activeTab] = v;
+          editMode = false; renderPanel();
+          showToast("保存しました（このページ内のみ）");
+        };
+        $("#cancelBtn").onclick = () => { editMode = false; renderPanel(); };
+      }
+    }
+
+    function tabLabel(key){
+      return ({desc:"説明", eat:"食べ方", cook:"調理の仕方", texture:"食感"})[key] || key;
+    }
+
+    function escapeHtml(s){
+      return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    // パーツ選択
+    parts.forEach(p=>{
+      p.setAttribute("tabindex","0");
+      p.addEventListener("click", ()=>toggleSelect(p));
+      p.addEventListener("keypress", (e)=>{ if(e.key==="Enter"||e.key===" ") toggleSelect(p); });
+      p.addEventListener("mouseenter", ()=>{ if(!selectedKey) chip.textContent = p.dataset.key; });
+      p.addEventListener("mouseleave", ()=>{ if(!selectedKey) chip.textContent = "—"; });
+    });
+
+    function toggleSelect(p){
+      const key = p.dataset.key;
+      if(selectedKey === key){ // 解除
+        selectedKey = null;
+        parts.forEach(x=>x.setAttribute("aria-selected","false"));
+        renderPanel();
+        return;
+      }
+      selectedKey = key;
+      parts.forEach(x=>x.setAttribute("aria-selected", x===p ? "true":"false"));
+      activeTab = "desc"; tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
+      renderPanel();
+    }
+
+    // タブ切替
+    tabs.forEach(t=>{
+      t.addEventListener("click", ()=>{
+        activeTab = t.dataset.tab;
+        tabs.forEach(x=>x.setAttribute("aria-selected", x===t?"true":"false"));
+        renderPanel();
+      });
+    });
+
+    // ボタン
+    editBtn.onclick = ()=>{
+      if(!selectedKey){ showToast("先に部位を選択してください"); return; }
+      editMode = !editMode; renderPanel();
+      editBtn.textContent = editMode ? "編集終了" : "編集モード";
+    };
+    clearBtn.onclick = ()=>{ selectedKey=null; parts.forEach(x=>x.setAttribute("aria-selected","false")); renderPanel(); };
+
+    // 初期描画
+    renderPanel();
+  </script>
+</body>
+</html>

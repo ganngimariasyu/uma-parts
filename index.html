@@ -10,10 +10,14 @@
       /* ダーク（グレー〜ネイビー系） */
       --bg1:#0b1020; --bg2:#0a0f1e; --card:#12192b; --ink:#e9f1ff; --muted:#9eb0d1; --line:#223155;
       --accent:#6ea8ff; --hit:#5db0ff33; --sel:#6ea8ff99;
+      --hit-width:28; /* ←タッチ判定の太さ。広げたい時は数値UP */
     }
     html,body{height:100%}
     *{box-sizing:border-box}
-    body{margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif; background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%); color:var(--ink)}
+    body{
+      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+      background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%); color:var(--ink)
+    }
     header{padding:18px 16px 4px; max-width:1200px; margin:auto}
     h1{margin:0 0 4px; font-size:clamp(20px,3vw,28px)}
     .sub{color:var(--muted); font-size:13px}
@@ -26,15 +30,18 @@
     .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0e1526; border:1px solid var(--line); color:var(--muted); font-size:12px}
     .badge i{width:10px; height:10px; border-radius:2px; background:var(--accent); display:inline-block}
 
-    /* SVG */
-    .svgbox{position:relative; aspect-ratio: 16/9; width:100%; background: radial-gradient(900px 480px at 50% 10%, #11203b 0%, #0c1324 45%, #0b1020 100%); border-radius:12px; overflow:hidden; border:1px solid var(--line)}
+    /* SVGエリア */
+    .svgbox{position:relative; aspect-ratio: 16/9; width:100%;
+      background: radial-gradient(900px 480px at 50% 10%, #11203b 0%, #0c1324 45%, #0b1020 100%);
+      border-radius:12px; overflow:hidden; border:1px solid var(--line)
+    }
     svg{display:block; width:100%; height:100%}
     .base{fill:#0e1730; stroke:#24365e}
     .part.visual{fill:#89a7d930; stroke:#8fb4ff66; stroke-width:1.2; cursor:pointer; transition:all .15s ease}
     .part.visual:hover{fill:var(--hit)}
     .part.visual[aria-selected="true"]{fill:var(--sel); stroke:#bcd6ff}
     /* クリック判定を広くする透明の当たり領域（strokeに反応） */
-    .part.hit{fill:none; stroke:transparent; stroke-width:28; pointer-events:stroke; vector-effect:non-scaling-stroke}
+    .part.hit{fill:none; stroke:transparent; stroke-width:var(--hit-width); pointer-events:stroke; vector-effect:non-scaling-stroke}
 
     .label{font-size:12px; fill:#cfe1ff}
 
@@ -60,7 +67,7 @@
 <body>
   <header>
     <h1>🐴 馬の部位インタラクティブ解説（接客用・ダーク）</h1>
-    <div class="sub">部位をタップ → 右側に <b>説明／食べ方／調理の仕方／食感</b> を表示。クリック判定を広めに調整済み。編集機能なし。</div>
+    <div class="sub">部位をタップ → 右側に <b>説明／食べ方／調理の仕方／食感</b> を表示。クリック判定は広め。編集機能なし。</div>
   </header>
 
   <div class="wrap">
@@ -71,13 +78,23 @@
         <span class="badge"><i style="background:#a6ffb1"></i> モバイルOK（ピンチで拡大）</span>
       </div>
       <div class="svgbox" id="svgbox">
-        <!-- 馬の形（改良デモ）。本番はお手持ちの馬体SVGに差し替えOK。 -->
+        <!-- ▼ ここが描画エリア。あなたのhorse.svgをそのまま貼ってもOK（下のコメント参照） -->
         <svg viewBox="0 0 920 520" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ttl desc">
           <title id="ttl">馬の部位シルエット（接客用）</title>
           <desc id="desc">シルエット上のパーツをタップして詳細を表示します。</desc>
 
-          <!-- ベースシルエット -->
-          <path class="base" d="M140,250 C180,180 280,150 380,160 C460,168 520,190 600,210 C640,220 700,218 740,222 C770,225 812,236 838,254 C846,260 850,272 846,282 C839,301 816,314 788,332 C760,349 738,364 720,380 C700,396 662,412 626,412 C552,410 476,388 404,380 C332,372 278,380 226,390 C176,400 134,392 108,360 C92,340 90,312 105,284 C116,262 126,258 140,250 Z"/>
+          <!-- =========================
+               あなたのhorse.svgの<path>や<g>を
+               ▼この <g id="horseShape"> の中にペースト
+               （viewBoxが違っても大抵OK。必要ならtransformで拡大縮小）
+          ========================== -->
+          <g id="horseShape">
+            <!-- ▼ここにhorse.svgの<path>等を貼る。貼ったら下の「fallbackBase」は自動で非表示にするJSが働きます。 -->
+          </g>
+
+          <!-- Fallback（貼り付け前の仮シルエット） -->
+          <path id="fallbackBase" class="base"
+            d="M140,250 C180,180 280,150 380,160 C460,168 520,190 600,210 C640,220 700,218 740,222 C770,225 812,236 838,254 C846,260 850,272 846,282 C839,301 816,314 788,332 C760,349 738,364 720,380 C700,396 662,412 626,412 C552,410 476,388 404,380 C332,372 278,380 226,390 C176,400 134,392 108,360 C92,340 90,312 105,284 C116,262 126,258 140,250 Z"/>
 
           <!-- 部位領域（視覚パス＋広いヒットパスの二重）-->
           <g id="parts">
@@ -140,7 +157,7 @@
       </div>
 
       <div class="howto">
-        <div class="card"><b>1) タップして拡大</b><br>気になる部位をタップすると右に詳細が出ます。もう一度タップで解除。</div>
+        <div class="card"><b>1) タップして表示</b><br>気になる部位をタップすると右に詳細が出ます。もう一度タップで解除。</div>
         <div class="card"><b>2) 食べ方の提案</b><br>「食べ方」タブに人気の食べ方を載せています。接客トークにどうぞ。</div>
       </div>
     </section>
@@ -165,7 +182,7 @@
   </div>
 
   <script>
-    // 1) 文言データ
+    // ===== 1) 文言データ =====
     const DATA = {
       "ロース": {
         desc: "背中の中心付近の赤身で、筋繊維がきめ細かくクセが少ない“王道部位”。初めての方にもおすすめ。脂は少なめで後味は軽いが、赤身の旨味が濃い。",
@@ -229,7 +246,7 @@
       }
     };
 
-    // 2) UI制御
+    // ===== 2) UI制御 =====
     const $ = (q, el=document) => el.querySelector(q);
     const $$ = (q, el=document) => [...el.querySelectorAll(q)];
     const partName = $("#partName");
@@ -243,6 +260,15 @@
 
     let selectedKey = null;
     let activeTab = "desc"; // desc | eat | cook | texture
+
+    // もし #horseShape にパスが貼られていたら、フォールバックを隠す
+    (function hideFallbackIfUserSvg(){
+      const hasUserSvg = $("#horseShape")?.children.length > 0;
+      if(hasUserSvg){
+        const fb = $("#fallbackBase");
+        if(fb) fb.style.display = "none";
+      }
+    })();
 
     function renderPanel(){
       if(!selectedKey){
@@ -266,8 +292,6 @@
       el.addEventListener("mouseenter", ()=>{ if(!selectedKey) chip.textContent = el.parentElement.dataset.key; });
       el.addEventListener("mouseleave", ()=>{ if(!selectedKey) chip.textContent = "—"; });
     }
-
-    // 事件付与
     visualPaths.forEach(attachHandlers);
     hitPaths.forEach(attachHandlers);
 
@@ -299,11 +323,11 @@
     renderPanel();
   </script>
 
-  <!-- ◆ 本番SVG差し替えメモ
-    1) assets/horse.svg を用意（各部位を個別の <path> に分ける）
-    2) 各部位の<g>に data-key="ロース" のように名称を付与（または id を名称に）
-    3) 上の <g id="parts"> を、horse.svg の該当グループで置換（visual/hit の二重化推奨）
-    4) ヒット判定は .part.hit を付け、stroke-width を太めに。
+  <!-- ◆ メモ：本番SVG差し替え
+    1) horse.svg を開いて中の <path> や <g> をコピー
+    2) 上の <g id="horseShape"> にそのままペースト（必要なら transform で位置/拡大）
+    3) 当たり判定をさらに広げたい時は :root の --hit-width を増やす（例: 36, 42）
+    4) もっと正確にしたい時は、各部位の .hit/.visual の d を微調整
   -->
 </body>
 </html>

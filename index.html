@@ -3,89 +3,75 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🐎 馬の部位インタラクティブ解説（接客用・編集なし）</title>
-  <meta name="description" content="馬の部位をタップすると『説明・食べ方・調理の仕方・食感』がページ内で表示される。接客時に見せやすいライトテーマ。" />
+  <title>🐎 馬の部位インタラクティブ解説（接客用・ダーク）</title>
+  <meta name="description" content="馬の部位をタップすると『説明・食べ方・調理の仕方・食感』がページ内で表示される接客向けツール。ダーク（グレー基調）＆広いクリック判定。" />
   <style>
     :root{
-      /* ライト（白基調） */
-      --bg:#ffffff; --ink:#1b1f28; --muted:#5b6170; --line:#e6e8ef; --card:#f9fafc;
-      --accent:#e76ba7; /* ほんのり桃色 */
-      --accent-2:#7aa7ff; --hit: #ffe7f2; --sel:#ffd5e8;
+      /* ダーク（グレー〜ネイビー系） */
+      --bg1:#0b1020; --bg2:#0a0f1e; --card:#12192b; --ink:#e9f1ff; --muted:#9eb0d1; --line:#223155;
+      --accent:#6ea8ff; --hit:#5db0ff33; --sel:#6ea8ff99;
     }
     html,body{height:100%}
     *{box-sizing:border-box}
-    body{margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif; background:var(--bg); color:var(--ink)}
+    body{margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif; background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%); color:var(--ink)}
     header{padding:18px 16px 4px; max-width:1200px; margin:auto}
     h1{margin:0 0 4px; font-size:clamp(20px,3vw,28px)}
     .sub{color:var(--muted); font-size:13px}
 
-    /* 配色トグル（白/桃）*/
-    .theme{display:flex; gap:8px; align-items:center; margin-top:8px}
-    .switch{appearance:none; width:44px; height:24px; border:1px solid var(--line); border-radius:999px; background:#f1f2f7; position:relative; cursor:pointer}
-    .switch:before{content:""; position:absolute; inset:3px auto 3px 3px; width:18px; border-radius:50%; background:#fff; box-shadow:0 1px 2px #0001; transition:.2s}
-    .switch:checked{background:#ffe3f0}
-    .switch:checked:before{left:23px; background:#ffecf5}
-
-    /* レイアウト */
     .wrap{display:grid; grid-template-columns:1.25fr 1fr; gap:18px; padding:12px 16px 28px; max-width:1200px; margin:auto}
     @media (max-width: 960px){ .wrap{ grid-template-columns:1fr; } }
 
     .stage{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px; position:relative}
     .legend{display:flex; gap:8px; flex-wrap:wrap; padding:6px 6px 10px}
-    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#fff; border:1px solid var(--line); color:var(--muted); font-size:12px}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0e1526; border:1px solid var(--line); color:var(--muted); font-size:12px}
     .badge i{width:10px; height:10px; border-radius:2px; background:var(--accent); display:inline-block}
 
     /* SVG */
-    .svgbox{position:relative; aspect-ratio: 16/9; width:100%; background: radial-gradient(700px 400px at 50% 10%, #fff 0%, #fcfcfe 60%, #f8f9fd 100%); border-radius:12px; overflow:hidden; border:1px solid var(--line)}
+    .svgbox{position:relative; aspect-ratio: 16/9; width:100%; background: radial-gradient(900px 480px at 50% 10%, #11203b 0%, #0c1324 45%, #0b1020 100%); border-radius:12px; overflow:hidden; border:1px solid var(--line)}
     svg{display:block; width:100%; height:100%}
-    .base{fill:#f3f6ff; stroke:#d6dcf2}
-    .part{fill:#e9f0ff; stroke:#c8d6ff; stroke-width:1.2; cursor:pointer; transition:all .15s ease}
-    .part:hover{fill:var(--hit)}
-    .part[aria-selected="true"]{fill:var(--sel); stroke:#f5a8c8}
-    .label{font-size:12px; fill:#6b6f7a}
+    .base{fill:#0e1730; stroke:#24365e}
+    .part.visual{fill:#89a7d930; stroke:#8fb4ff66; stroke-width:1.2; cursor:pointer; transition:all .15s ease}
+    .part.visual:hover{fill:var(--hit)}
+    .part.visual[aria-selected="true"]{fill:var(--sel); stroke:#bcd6ff}
+    /* クリック判定を広くする透明の当たり領域（strokeに反応） */
+    .part.hit{fill:none; stroke:transparent; stroke-width:28; pointer-events:stroke; vector-effect:non-scaling-stroke}
+
+    .label{font-size:12px; fill:#cfe1ff}
 
     /* サイドパネル */
-    .panel{position:relative; background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden}
+    .panel{position:relative; background:#0f1526; border:1px solid var(--line); border-radius:16px; overflow:hidden}
     .panel header{padding:14px 16px; border-bottom:1px solid var(--line)}
     .panel h2{margin:0; font-size:18px}
     .chip{color:var(--muted); font-size:12px}
     .tabs{display:flex; gap:6px; padding:10px; border-bottom:1px solid var(--line); overflow:auto}
-    .tab{flex:0 0 auto; padding:8px 12px; background:#fff; border:1px solid var(--line); color:var(--muted); border-radius:10px; cursor:pointer; font-size:13px}
-    .tab[aria-selected="true"]{background:#fff0f6; color:var(--ink); border-color:#ffc7df}
+    .tab{flex:0 0 auto; padding:8px 12px; background:#0e1528; border:1px solid var(--line); color:var(--muted); border-radius:10px; cursor:pointer; font-size:13px}
+    .tab[aria-selected="true"]{background:#15213a; color:var(--ink); border-color:#34508a}
     .content{padding:14px 16px; min-height:220px}
     .content h3{margin:0 0 6px; font-size:14px; color:var(--muted)}
     .content p{margin:0 0 10px; line-height:1.9}
-    .note{font-size:12px; color:var(--muted); padding:0 16px 16px}
 
     /* 使い方カード */
     .howto{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px 12px}
-    .howto .card{background:#fff; border:1px solid var(--line); border-radius:12px; padding:10px}
-    .howto b{color:#d24f8c}
+    .howto .card{background:#0e1526; border:1px solid var(--line); border-radius:12px; padding:10px; color:var(--ink)}
+    .howto b{color:#8ec1ff}
     @media (max-width: 640px){ .howto{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
   <header>
-    <h1>🐴 馬の部位インタラクティブ解説（接客用）</h1>
-    <div class="sub">部位をタップ → 右側に <b>説明／食べ方／調理の仕方／食感</b> を表示。ページ遷移・編集機能なしで、見せる専用。</div>
-    <div class="theme">
-      <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px">
-        配色：白
-        <input id="themeSwitch" class="switch" type="checkbox" />
-        桃（やさしいピンク背景）
-      </label>
-    </div>
+    <h1>🐴 馬の部位インタラクティブ解説（接客用・ダーク）</h1>
+    <div class="sub">部位をタップ → 右側に <b>説明／食べ方／調理の仕方／食感</b> を表示。クリック判定を広めに調整済み。編集機能なし。</div>
   </header>
 
   <div class="wrap">
     <!-- 左：インタラクティブSVG -->
     <section class="stage">
       <div class="legend">
-        <span class="badge"><i></i> タップで選択／もう一度で解除</span>
-        <span class="badge"><i style="background:#7aa7ff"></i> ピンチで拡大・ドラッグで移動（ブラウザの標準操作）</span>
+        <span class="badge"><i></i> タップで選択／もう一度で解除（判定広め）</span>
+        <span class="badge"><i style="background:#a6ffb1"></i> モバイルOK（ピンチで拡大）</span>
       </div>
       <div class="svgbox" id="svgbox">
-        <!-- 馬の形をより実馬に近づけたシルエット（単純化したパス）-->
+        <!-- 馬の形（改良デモ）。本番はお手持ちの馬体SVGに差し替えOK。 -->
         <svg viewBox="0 0 920 520" xmlns="http://www.w3.org/2000/svg" aria-labelledby="ttl desc">
           <title id="ttl">馬の部位シルエット（接客用）</title>
           <desc id="desc">シルエット上のパーツをタップして詳細を表示します。</desc>
@@ -93,18 +79,48 @@
           <!-- ベースシルエット -->
           <path class="base" d="M140,250 C180,180 280,150 380,160 C460,168 520,190 600,210 C640,220 700,218 740,222 C770,225 812,236 838,254 C846,260 850,272 846,282 C839,301 816,314 788,332 C760,349 738,364 720,380 C700,396 662,412 626,412 C552,410 476,388 404,380 C332,372 278,380 226,390 C176,400 134,392 108,360 C92,340 90,312 105,284 C116,262 126,258 140,250 Z"/>
 
-          <!-- 部位領域（おおまかな位置）-->
+          <!-- 部位領域（視覚パス＋広いヒットパスの二重）-->
           <g id="parts">
-            <path class="part" data-key="ロース" d="M320,210 C380,200 460,202 520,214 C560,222 582,232 600,242 C560,252 520,256 480,256 C420,256 370,248 330,236 Z"/>
-            <path class="part" data-key="肩ロース" d="M250,220 C290,205 330,198 360,198 C340,214 332,230 328,244 C302,242 278,236 254,228 Z"/>
-            <path class="part" data-key="ヒレ" d="M520,220 C552,226 580,238 605,254 C575,260 545,262 512,260 C500,248 504,234 520,220 Z"/>
-            <path class="part" data-key="バラ" d="M290,260 C360,280 460,292 560,292 C540,312 500,330 440,338 C372,346 312,332 270,308 Z"/>
-            <path class="part" data-key="フタエゴ" d="M220,258 C254,268 270,286 278,306 C248,312 218,308 198,294 C192,278 198,266 220,258 Z"/>
-            <path class="part" data-key="タテガミ" d="M260,188 C308,170 360,160 410,158 C372,172 344,188 326,206 C304,202 282,196 260,188 Z"/>
-            <path class="part" data-key="内もも" d="M440,344 C490,338 540,330 580,324 C566,352 540,372 504,380 C468,386 436,380 410,362 Z"/>
-            <path class="part" data-key="外もも" d="M580,324 C620,320 660,316 700,312 C696,342 672,366 634,382 C604,392 578,386 556,370 Z"/>
-            <path class="part" data-key="ハツ" d="M632,260 C660,266 688,270 716,280 C690,288 664,292 638,290 C628,282 626,270 632,260 Z"/>
-            <path class="part" data-key="レバー" d="M664,290 C694,296 722,306 748,320 C722,326 696,330 670,328 C656,318 656,304 664,290 Z"/>
+            <g data-key="ロース">
+              <path class="part hit" d="M320,210 C380,200 460,202 520,214 C560,222 582,232 600,242 C560,252 520,256 480,256 C420,256 370,248 330,236 Z"/>
+              <path class="part visual" d="M320,210 C380,200 460,202 520,214 C560,222 582,232 600,242 C560,252 520,256 480,256 C420,256 370,248 330,236 Z"/>
+            </g>
+            <g data-key="肩ロース">
+              <path class="part hit" d="M250,220 C290,205 330,198 360,198 C340,214 332,230 328,244 C302,242 278,236 254,228 Z"/>
+              <path class="part visual" d="M250,220 C290,205 330,198 360,198 C340,214 332,230 328,244 C302,242 278,236 254,228 Z"/>
+            </g>
+            <g data-key="ヒレ">
+              <path class="part hit" d="M520,220 C552,226 580,238 605,254 C575,260 545,262 512,260 C500,248 504,234 520,220 Z"/>
+              <path class="part visual" d="M520,220 C552,226 580,238 605,254 C575,260 545,262 512,260 C500,248 504,234 520,220 Z"/>
+            </g>
+            <g data-key="バラ">
+              <path class="part hit" d="M290,260 C360,280 460,292 560,292 C540,312 500,330 440,338 C372,346 312,332 270,308 Z"/>
+              <path class="part visual" d="M290,260 C360,280 460,292 560,292 C540,312 500,330 440,338 C372,346 312,332 270,308 Z"/>
+            </g>
+            <g data-key="フタエゴ">
+              <path class="part hit" d="M220,258 C254,268 270,286 278,306 C248,312 218,308 198,294 C192,278 198,266 220,258 Z"/>
+              <path class="part visual" d="M220,258 C254,268 270,286 278,306 C248,312 218,308 198,294 C192,278 198,266 220,258 Z"/>
+            </g>
+            <g data-key="タテガミ">
+              <path class="part hit" d="M260,188 C308,170 360,160 410,158 C372,172 344,188 326,206 C304,202 282,196 260,188 Z"/>
+              <path class="part visual" d="M260,188 C308,170 360,160 410,158 C372,172 344,188 326,206 C304,202 282,196 260,188 Z"/>
+            </g>
+            <g data-key="内もも">
+              <path class="part hit" d="M440,344 C490,338 540,330 580,324 C566,352 540,372 504,380 C468,386 436,380 410,362 Z"/>
+              <path class="part visual" d="M440,344 C490,338 540,330 580,324 C566,352 540,372 504,380 C468,386 436,380 410,362 Z"/>
+            </g>
+            <g data-key="外もも">
+              <path class="part hit" d="M580,324 C620,320 660,316 700,312 C696,342 672,366 634,382 C604,392 578,386 556,370 Z"/>
+              <path class="part visual" d="M580,324 C620,320 660,316 700,312 C696,342 672,366 634,382 C604,392 578,386 556,370 Z"/>
+            </g>
+            <g data-key="ハツ">
+              <path class="part hit" d="M632,260 C660,266 688,270 716,280 C690,288 664,292 638,290 C628,282 626,270 632,260 Z"/>
+              <path class="part visual" d="M632,260 C660,266 688,270 716,280 C690,288 664,292 638,290 C628,282 626,270 632,260 Z"/>
+            </g>
+            <g data-key="レバー">
+              <path class="part hit" d="M664,290 C694,296 722,306 748,320 C722,326 696,330 670,328 C656,318 656,304 664,290 Z"/>
+              <path class="part visual" d="M664,290 C694,296 722,306 748,320 C722,326 696,330 670,328 C656,318 656,304 664,290 Z"/>
+            </g>
           </g>
 
           <!-- ラベル -->
@@ -123,7 +139,6 @@
         </svg>
       </div>
 
-      <!-- 使い方（接客トーク補助）-->
       <div class="howto">
         <div class="card"><b>1) タップして拡大</b><br>気になる部位をタップすると右に詳細が出ます。もう一度タップで解除。</div>
         <div class="card"><b>2) 食べ方の提案</b><br>「食べ方」タブに人気の食べ方を載せています。接客トークにどうぞ。</div>
@@ -144,14 +159,13 @@
       </nav>
       <div class="content" id="content">
         <h3>ガイド</h3>
-        <p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。接客中にお客様へ見せる想定で、編集機能は省いてあります。</p>
+        <p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。編集機能は省いてあります。</p>
       </div>
-      <div class="note">※ 配色は上部トグルで「白 ⇄ 桃色」を切り替え可能。</div>
     </aside>
   </div>
 
   <script>
-    // 1) 文言データ（説明を厚めにしました）
+    // 1) 文言データ
     const DATA = {
       "ロース": {
         desc: "背中の中心付近の赤身で、筋繊維がきめ細かくクセが少ない“王道部位”。初めての方にもおすすめ。脂は少なめで後味は軽いが、赤身の旨味が濃い。",
@@ -222,8 +236,10 @@
     const chip = $("#chip");
     const content = $("#content");
     const tabs = $$(".tab");
-    const parts = $$(".part");
-    const themeSwitch = $("#themeSwitch");
+
+    const groups = $$("#parts > g"); // 各部位グループ（data-key付き）
+    const visualPaths = $$(".part.visual");
+    const hitPaths = $$(".part.hit");
 
     let selectedKey = null;
     let activeTab = "desc"; // desc | eat | cook | texture
@@ -232,7 +248,7 @@
       if(!selectedKey){
         partName.textContent = "部位をタップしてください";
         chip.textContent = "—";
-        content.innerHTML = `<h3>ガイド</h3><p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。接客中にお客様へ見せることを想定し、編集機能は省いてあります。</p>`;
+        content.innerHTML = `<h3>ガイド</h3><p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。編集機能は省いてあります。</p>`;
         return;
       }
       const data = DATA[selectedKey];
@@ -242,25 +258,30 @@
       content.innerHTML = `<h3>${({desc:"説明", eat:"食べ方", cook:"調理の仕方", texture:"食感"})[activeTab]}</h3><p>${body}</p>`;
     }
 
-    // パーツ選択
-    parts.forEach(p=>{
-      p.setAttribute("tabindex","0");
-      p.addEventListener("click", ()=>toggleSelect(p));
-      p.addEventListener("keypress", (e)=>{ if(e.key==="Enter"||e.key===" ") toggleSelect(p); });
-      p.addEventListener("mouseenter", ()=>{ if(!selectedKey) chip.textContent = p.dataset.key; });
-      p.addEventListener("mouseleave", ()=>{ if(!selectedKey) chip.textContent = "—"; });
-    });
+    // 部位選択（ビジュアル/ヒットどちらを押しても同じ挙動）
+    function attachHandlers(el){
+      el.setAttribute("tabindex","0");
+      el.addEventListener("click", ()=>toggleSelect(el));
+      el.addEventListener("keypress", (e)=>{ if(e.key==="Enter"||e.key===" ") toggleSelect(el); });
+      el.addEventListener("mouseenter", ()=>{ if(!selectedKey) chip.textContent = el.parentElement.dataset.key; });
+      el.addEventListener("mouseleave", ()=>{ if(!selectedKey) chip.textContent = "—"; });
+    }
 
-    function toggleSelect(p){
-      const key = p.dataset.key;
-      if(selectedKey === key){ // 解除
-        selectedKey = null;
-        parts.forEach(x=>x.setAttribute("aria-selected","false"));
-        renderPanel();
-        return;
+    // 事件付与
+    visualPaths.forEach(attachHandlers);
+    hitPaths.forEach(attachHandlers);
+
+    function toggleSelect(target){
+      const key = target.parentElement.dataset.key;
+      const isSame = (selectedKey === key);
+      selectedKey = isSame ? null : key;
+      // 視覚反映
+      visualPaths.forEach(v=>v.setAttribute("aria-selected","false"));
+      if(!isSame){
+        const group = groups.find(g=>g.dataset.key===key);
+        group.querySelector('.visual').setAttribute('aria-selected','true');
       }
-      selectedKey = key;
-      parts.forEach(x=>x.setAttribute("aria-selected", x===p ? "true":"false"));
+      // タブを説明に戻す
       activeTab = "desc"; tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
       renderPanel();
     }
@@ -274,15 +295,15 @@
       });
     });
 
-    // 配色切替（白 ⇄ 桃）: body背景にほんのりグラデ追加
-    themeSwitch.addEventListener('change', ()=>{
-      document.body.style.background = themeSwitch.checked
-        ? 'linear-gradient(180deg,#fff5fa 0%,#ffffff 60%)'
-        : 'var(--bg)';
-    });
-
     // 初期描画
     renderPanel();
   </script>
+
+  <!-- ◆ 本番SVG差し替えメモ
+    1) assets/horse.svg を用意（各部位を個別の <path> に分ける）
+    2) 各部位の<g>に data-key="ロース" のように名称を付与（または id を名称に）
+    3) 上の <g id="parts"> を、horse.svg の該当グループで置換（visual/hit の二重化推奨）
+    4) ヒット判定は .part.hit を付け、stroke-width を太めに。
+  -->
 </body>
 </html>

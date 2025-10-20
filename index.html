@@ -1,216 +1,103 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>馬刺し 部位ガイド</title>
-<style>
-  :root{
-    --bg:#fbeff3;          /* ページ背景（淡い桃） */
-    --panel:#fff7f9;       /* 情報パネル背景（さらに淡い桃） */
-    --line:#f3c4cf;        /* 枠線（桃） */
-    --ink:#333;            /* 文字色 */
-    --accent:#d96c8b;      /* 見出しの差し色 */
-    --hover:#f5b6c644;     /* ホバー時のオーバーレイ色(透明桃) */
-    --active:#d96c8b66;    /* 選択時のオーバーレイ色(濃いめ) */
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
-    color:var(--ink); background:var(--bg);
-    display:flex; gap:0; min-height:100vh; overflow:hidden;
-  }
-  .left{
-    flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:16px;
-  }
-  .right{
-    width:36rem; max-width:100%; background:var(--panel); border-left:3px solid var(--line);
-    box-shadow:-6px 0 18px rgba(0,0,0,.05); overflow:auto; padding:20px;
-  }
-  h1{font-size:20px; margin:0 0 8px; color:#444}
-  .muted{color:#666; font-size:13px; margin-bottom:8px}
-  h2{margin:.2rem 0 .6rem; color:var(--accent); font-size:22px}
-  .sec{margin:.75rem 0}
-  .sec h3{margin:.2rem 0 .4rem; font-size:14px; color:#666}
-  .sec p{margin:0; line-height:1.8}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐴 馬肉部位図 - 教材＆EC用マップ</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+      background-color: #fff6f8;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+      gap: 40px;
+    }
 
-  /* SVGボード */
-  .board{
-    width:100%; max-width:1100px; background:#fff; border:1px solid var(--line);
-    border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,.06)
-  }
-  .stage{width:100%; height:auto; display:block; background:#fff}
-  /* クリックエリアの見た目（通常は透明、ホバー/選択時のみ色） */
-  .area{fill:transparent; stroke:transparent; stroke-width:20; vector-effect:non-scaling-stroke; cursor:pointer; transition:fill .15s ease, stroke .15s ease}
-  .area:hover{fill:var(--hover)}
-  .area[aria-selected="true"]{fill:var(--active); stroke:#d96c8b88}
+    .map-container {
+      position: relative;
+      width: 720px;
+      height: auto;
+    }
 
-  /* ラベル (必要なら表示) */
-  .label{font-size:11px; fill:#444; paint-order:stroke; stroke:#fff; stroke-width:3; stroke-linejoin:round}
+    .map-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
-  @media (max-width: 980px){
-    body{flex-direction:column}
-    .right{width:100%; border-left:none; border-top:3px solid var(--line)}
-  }
-</style>
+    /* 各部位ラベルの共通スタイル */
+    .label {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid #e1a4b3;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #b03c60;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      pointer-events: none;
+    }
+
+    /* ラベル位置（画像に合わせて調整） */
+    .label.tategami { top: 50px; left: 180px; }
+    .label.katarosu { top: 120px; left: 240px; }
+    .label.hire { top: 130px; left: 400px; }
+    .label.baras { top: 220px; left: 300px; }
+    .label.ranpu { top: 280px; left: 480px; }
+
+    /* ホバーエフェクト（ほんのり光る） */
+    .map-container:hover {
+      filter: brightness(1.05);
+      transition: all 0.3s ease;
+    }
+
+    .info-panel {
+      width: 320px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      position: sticky;
+      top: 40px;
+    }
+
+    .info-panel h2 {
+      color: #b03c60;
+      font-size: 20px;
+      border-bottom: 2px solid #f1b8c5;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .info-panel p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #444;
+    }
+  </style>
 </head>
 <body>
 
-  <div class="left">
-    <div class="board">
-      <!-- viewBoxは 9P0Yuv01.svg と合わせて 300x200。背景にそのまま敷く -->
-      <svg class="stage" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-label="馬体図とクリックエリア">
-        <!-- 背景：あなたのSVGファイルをそのまま描画 -->
-        <image href="https://ganngimariasyu.github.io/uma-parts/9P0Yuv01.svg" x="0" y="0" width="300" height="200" preserveAspectRatio="xMidYMid meet" />
-
-        <!-- ======== クリックエリア（一般的な部位位置に準拠して配置）========
-             ※ 透明。ホバー/選択で色が出る。座標は viewBox(300x200) 前提。
-             必要なら後で座標微調整だけでOK（見た目は背景画像のまま）。 -->
-        <!-- 1 たてがみ（首の上側の脂） -->
-        <polygon class="area" data-key="たてがみ"
-          points="78,36 105,28 132,31 135,40 115,45 92,45" />
-        <!-- 2 ネック（首筋） -->
-        <polygon class="area" data-key="ネック"
-          points="95,46 135,44 150,55 150,70 120,72 98,64" />
-        <!-- 3 肩ロース（肩～背中手前） -->
-        <polygon class="area" data-key="肩ロース"
-          points="150,60 178,60 188,72 188,86 160,88 148,78" />
-        <!-- 7 ロース（背中中央） -->
-        <polygon class="area" data-key="ロース"
-          points="188,70 230,72 244,85 242,96 210,98 188,90" />
-        <!-- 4 ヒレ（腰の内側・柔らか） -->
-        <polygon class="area" data-key="ヒレ"
-          points="200,98 222,98 235,105 232,116 210,118 198,110" />
-        <!-- 5 前バラ（胸～腹前側） -->
-        <polygon class="area" data-key="前バラ"
-          points="140,90 170,92 178,108 165,122 138,118 132,102" />
-        <!-- 6 フタエゴ（腹下の層状脂） -->
-        <polygon class="area" data-key="フタエゴ"
-          points="170,114 198,120 205,132 186,140 162,135 158,122" />
-        <!-- 8 スネ（前脚すね） -->
-        <polygon class="area" data-key="スネ"
-          points="120,122 132,136 128,160 118,172 110,166 112,140" />
-        <!-- 9 外モモ（後肢外側） -->
-        <polygon class="area" data-key="外モモ"
-          points="238,110 260,112 272,128 268,144 248,150 236,140" />
-        <!-- 10 内モモ（後肢内側） -->
-        <polygon class="area" data-key="内モモ"
-          points="218,118 236,120 240,138 230,150 212,146 206,130" />
-        <!-- 11 シンタマ（もも下部） -->
-        <polygon class="area" data-key="シンタマ"
-          points="196,126 210,130 210,146 198,154 186,146 186,132" />
-        <!-- 12 イチボ（お尻先端） -->
-        <polygon class="area" data-key="イチボ"
-          points="248,96 270,96 284,106 278,116 260,118 246,110" />
-        <!-- 13 ランプ（腰～尻の赤身） -->
-        <polygon class="area" data-key="ランプ"
-          points="228,96 248,96 246,110 230,116 214,110 214,100" />
-
-        <!-- ラベル（必要なら表示。初期は非表示にしている） -->
-        <!-- <text class="label" x="120" y="40">たてがみ</text> -->
-      </svg>
-    </div>
+  <div class="map-container">
+    <img src="スクリーンショット-2025-10-20-203144.svg" alt="馬肉部位図" />
+    <div class="label tategami">タテガミ</div>
+    <div class="label katarosu">肩ロース</div>
+    <div class="label hire">ヒレ</div>
+    <div class="label baras">バラ</div>
+    <div class="label ranpu">ランプ</div>
   </div>
 
-  <aside class="right" id="panel">
-    <h1>馬刺し 部位ガイド</h1>
-    <div class="muted">部位をタップ／クリックすると、特徴とおすすめの食べ方が表示されます。</div>
-    <h2 id="title">部位を選択してください</h2>
-    <div class="sec">
-      <h3>説明</h3>
-      <p id="desc">背景の馬体図から気になる部位を選んでください。</p>
-    </div>
-    <div class="sec">
-      <h3>おすすめの食べ方</h3>
-      <p id="eat">選択した部位のおすすめをこちらに表示します。</p>
-    </div>
-  </aside>
-
-<script>
-/* ---- EC向けテキスト ---- */
-const DATA = {
-  "たてがみ": {
-    desc: "首の上部の希少な白身（コウネ）。ぷるっととろける脂の甘みで、赤身と合わせると旨みが一気に花開きます。",
-    eat: "薄切りで“紅白刺し”（ロース等の赤身と重ね）に。塩＋ごま油、甘口醤油も好相性。"
-  },
-  "ネック": {
-    desc: "首まわりの赤身で、しっかりした噛みごたえと濃い旨み。刻んでネギトロ風にも人気。",
-    eat: "ユッケ風（卵黄＋ごま油＋醤油）や、たたきにして香ばしく。"
-  },
-  "肩ロース": {
-    desc: "程よいサシでやわらか＆ジューシー。脂の甘みと赤身の旨みのバランスが秀逸な人気部位。",
-    eat: "生姜醤油／にんにく醤油。軽く炙って香りを足すのも◎。"
-  },
-  "ロース": {
-    desc: "馬刺しの王道。きめ細かな赤身に上品なサシが入り、旨みと甘みが広がります。",
-    eat: "王道の生姜醤油。ネギ・ごま油を添えて香り高く。"
-  },
-  "ヒレ": {
-    desc: "最もやわらかな赤身。クセがなく上品で、贈り物にも選ばれる高評価部位。",
-    eat: "わさび醤油でシンプルに。霜降りとの食べ比べもおすすめ。"
-  },
-  "前バラ": {
-    desc: "胸〜腹前の部位。脂のコクと旨みがしっかりで、加熱料理でも満足度◎。",
-    eat: "馬丼・煮込み・焼き。甘辛ダレや味噌ダレと好相性。"
-  },
-  "フタエゴ": {
-    desc: "赤身と脂が層になった人気部位。コリコリ食感と口どけの甘みが特徴です。",
-    eat: "酢味噌・ポン酢でさっぱり。軽い炙りでも美味。"
-  },
-  "スネ": {
-    desc: "運動量が多い部位でコラーゲン豊富。煮込むほどホロっとやわらかに。",
-    eat: "すじ煮込み、シチュー、スープ系に。"
-  },
-  "外モモ": {
-    desc: "引き締まった赤身で食べ応えあり。低脂肪ながら旨みはしっかり。",
-    eat: "薄切りをさっと炙ってポン酢／生姜醤油。ユッケ風も◎。"
-  },
-  "内モモ": {
-    desc: "きめ細かな赤身でしっとり。さっぱりと上品な味わいで女性人気も高い。",
-    eat: "薄切り馬刺し＋薬味でさっぱり。わさび醤油・生姜醤油。"
-  },
-  "シンタマ": {
-    desc: "もも下部。赤身の旨み＆やわらかさのバランス良好。刺し・焼き両方で活躍。",
-    eat: "赤身刺し、軽い炙り。わさび醤油が合います。"
-  },
-  "イチボ": {
-    desc: "お尻の先端。やわらかい赤身にまろやかな脂の甘さが加わり、贅沢感のある一枚。",
-    eat: "薄切りで霜降り風に。塩＋ごま油、甘口醤油も◎。"
-  },
-  "ランプ": {
-    desc: "腰〜尻の赤身。濃厚な旨みが特徴で、刺身でもステーキでも人気の万能部位。",
-    eat: "厚めのタタキ、または厚切り馬刺しで旨みを堪能。"
-  }
-};
-
-/* ---- UI制御 ---- */
-const title = document.getElementById('title');
-const desc  = document.getElementById('desc');
-const eat   = document.getElementById('eat');
-const areas = Array.from(document.querySelectorAll('.area'));
-let selected = null;
-
-areas.forEach(a=>{
-  a.setAttribute('tabindex','0');
-  a.addEventListener('click', ()=>select(a));
-  a.addEventListener('keypress', (e)=>{ if(e.key==='Enter'||e.key===' ') select(a); });
-  a.addEventListener('mouseenter', ()=>{ if(!selected) title.textContent = a.dataset.key; });
-  a.addEventListener('mouseleave', ()=>{ if(!selected) title.textContent = '部位を選択してください'; });
-});
-
-function select(a){
-  const key = a.dataset.key;
-  selected = key;
-  areas.forEach(x=>x.setAttribute('aria-selected','false'));
-  a.setAttribute('aria-selected','true');
-
-  const data = DATA[key];
-  title.textContent = key;
-  desc.textContent  = data?.desc  ?? '—';
-  eat.textContent   = data?.eat   ?? '—';
-}
-</script>
+  <div class="info-panel">
+    <h2>馬肉の部位説明</h2>
+    <p><strong>タテガミ：</strong>ぷるぷるとした食感で、コラーゲン豊富。</p>
+    <p><strong>肩ロース：</strong>赤身と脂のバランスがよく、刺身や焼きに最適。</p>
+    <p><strong>ヒレ：</strong>最も柔らかい希少部位。上品な味わい。</p>
+    <p><strong>バラ：</strong>旨みが強く煮込み料理に向く人気部位。</p>
+    <p><strong>ランプ：</strong>赤身の味がしっかり、低脂肪高たんぱく。</p>
+  </div>
 
 </body>
 </html>

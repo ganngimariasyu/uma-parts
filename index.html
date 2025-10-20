@@ -1,155 +1,253 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>馬肉 部位図（反応版）</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>馬肉 部位図（完成版）</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
 <style>
-:root {
-  --bg:#fff6f8; --accent:#d96c8b;
-  --hover:rgba(217,108,139,.22);
-  --active:rgba(217,108,139,.35);
-  --line:#f3c4cf; --ink:#222;
+:root{
+  --bg:#fff6f8; --panel:#fff; --line:#f3c4cf; --ink:#222;
+  --hover:rgba(217,108,139,.22); --active:rgba(217,108,139,.36);
+  --accent:#d96c8b;
 }
-body {
-  margin:0; padding:24px;
-  font-family: "Noto Sans JP", sans-serif;
-  background:var(--bg); color:var(--ink);
-  display:flex; gap:30px;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  display:flex; gap:28px; padding:22px; align-items:flex-start;
+  font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
 }
-.stage-wrap { position:relative; flex:1 1 auto; display:flex; justify-content:center; }
-.overlay {
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  pointer-events:none;
+.left{ position:relative; flex:1 1 auto; display:flex; justify-content:center; }
+.stage-wrap{ position:relative; }
+.svg-host{
+  display:block; width:min(1080px,92vw); height:auto;
+  border:1px solid var(--line); background:#fff; border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.06); overflow:hidden;
 }
-.hit {
-  fill:transparent; stroke:transparent; pointer-events:all;
-  cursor:pointer; rx:8; ry:8;
-  transition:fill .15s ease;
+.overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.hit{ fill:transparent; stroke:transparent; pointer-events:all; cursor:pointer; rx:8; ry:8; transition:fill .12s ease; }
+.hit:hover{ fill:var(--hover); }
+.hit[aria-selected="true"]{ fill:var(--active); stroke:#d96c8b66; }
+.handle{ display:none; }
+.edit .handle{ display:block; fill:#fff; stroke:#333; pointer-events:all; cursor:move }
+.right{
+  width:360px; max-width:100%; background:var(--panel);
+  border-left:3px solid var(--line); border-radius:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.08);
+  padding:18px 20px; position:sticky; top:22px;
 }
-.hit:hover { fill:var(--hover); }
-.hit[aria-selected="true"] { fill:var(--active); stroke:#d96c8b66; }
-
-aside {
-  width:340px; background:#fff;
-  border-left:3px solid var(--line);
-  border-radius:10px; padding:18px;
-  box-shadow:0 8px 20px rgba(0,0,0,.08);
-}
-h1 { font-size:18px; color:var(--accent); margin-top:0; }
-.sec h3 { margin:.3em 0; font-size:13px; color:#666; }
-p { margin:.2em 0 1em; line-height:1.8; }
-.toast {
-  position:fixed; left:50%; bottom:22px;
-  transform:translateX(-50%);
-  background:#111; color:#fff; padding:10px 16px;
-  border-radius:8px; font-size:14px;
-}
+h1{margin:.2rem 0 .6rem; font-size:18px}
+.pill{display:inline-block; font-size:11px; color:#fff; background:var(--accent); border-radius:999px; padding:2px 10px; margin-left:8px}
+.muted{color:#666; font-size:12px; margin-bottom:8px}
+h2{margin:.4rem 0 .5rem; font-size:20px; color:var(--accent)}
+.sec{margin:.6rem 0}.sec h3{margin:.2rem 0 .3rem; font-size:13px; color:#666}.sec p{margin:0; line-height:1.8}
+.tips{font-size:12px; color:#777; margin-top:8px}
+.toast{position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:#111; color:#fff; padding:8px 14px; border-radius:8px; font-size:13px; box-shadow:0 6px 18px rgba(0,0,0,.25)}
+@media (max-width:980px){ body{flex-direction:column} .right{width:100%; border-left:none; border-top:3px solid var(--line)} .svg-host{width:100%} }
 </style>
 </head>
 <body>
+  <div class="left">
+    <div class="stage-wrap">
+      <!-- 1) SVG本体をJSで自動埋め込み（コード貼替え不要） -->
+      <div id="svgHost" class="svg-host"></div>
+      <!-- 2) 透明クリックレイヤ：SVGのviewBoxに同期 -->
+      <svg id="overlay" class="overlay" viewBox="0 0 612 454" preserveAspectRatio="none" aria-hidden="true">
+        <g id="hits"></g>
+      </svg>
+    </div>
+  </div>
 
-<div class="stage-wrap">
-  <!-- SVG直接埋め込み -->
-  <svg id="horseSVG" viewBox="0 0 612 454" width="100%" style="max-width:1080px; height:auto; border:1px solid var(--line); border-radius:10px; background:#fff;">
-    <!-- ↓↓↓ あなたのSVG内容をまるごとここに貼り付けてください ↓↓↓ -->
-    <!-- ⚠️ <?xml version〜> や <svg>タグは不要。中の <path> などだけコピペ。 -->
-  </svg>
-
-  <!-- 透明クリックレイヤー -->
-  <svg class="overlay" viewBox="0 0 612 454" preserveAspectRatio="none">
-    <g id="hits"></g>
-  </svg>
-</div>
-
-<aside>
-  <h1>馬肉 部位図</h1>
-  <h2 id="title">部位を選択してください</h2>
-  <div class="sec"><h3>説明</h3><p id="desc">部位名の上でクリックすると説明が表示されます。</p></div>
-  <div class="sec"><h3>おすすめの食べ方</h3><p id="eat">EC向け案内を自動表示。</p></div>
-</aside>
+  <aside class="right">
+    <h1>馬肉 部位図 <span class="pill">ホバーで強調 / クリックで説明</span></h1>
+    <div class="muted">※ 本番では編集UIは出ません。必要なときだけ <code>?edit=1</code> で微調整できます。</div>
+    <h2 id="title">部位を選択してください</h2>
+    <div class="sec"><h3>説明</h3><p id="desc">部位にカーソルを合わせると強調、クリックでここに固定表示されます。</p></div>
+    <div class="sec"><h3>おすすめの食べ方</h3><p id="eat">EC向けの食べ方ガイドもセット済み。</p></div>
+    <div class="tips">キャッシュで古い場合は再読み込み（Windows: <kbd>Ctrl</kbd>+<kbd>F5</kbd> / Mac: <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>）。</div>
+  </aside>
 
 <script>
-const VB = { w:612, h:454 };
-const PARTS = [
-  "たてがみ","ネック","肩ロース","ロース","ヒレ","前バラ","後バラ","フタエゴ",
-  "内モモ","外モモ","シンタマ","イチボ","スネ(左)","スネ(右)","ラム"
+/* ========= 設定 ========= */
+// あなたのSVGファイル（同じフォルダ）
+const SVG_FILE = "screenshot-2025-10-20-203144.svg"; // 612×454 / 左向き（viewBox: 0 0 612 454）
+
+// 初期ホットスポット（仮）。まずは全部反応するように広めに置く（後で edit=1 で微調整OK）
+const PRESETS = [
+  {name:"たてがみ", x:110, y:70,  w:90, h:40},
+  {name:"ネック",   x:160, y:120, w:110, h:55},
+  {name:"肩ロース", x:220, y:150, w:120, h:55},
+  {name:"ロース",   x:300, y:170, w:140, h:60},
+  {name:"ヒレ",     x:360, y:210, w:120, h:55},
+  {name:"前バラ",   x:250, y:220, w:140, h:65},
+  {name:"後バラ",   x:420, y:230, w:120, h:60},
+  {name:"フタエゴ", x:330, y:260, w:150, h:65},
+  {name:"内モモ",   x:500, y:260, w:110, h:55},
+  {name:"外モモ",   x:540, y:230, w:110, h:55},
+  {name:"シンタマ", x:520, y:290, w:110, h:55},
+  {name:"イチボ",   x:470, y:250, w:110, h:50},
+  {name:"スネ(左)", x:200, y:320, w:100, h:50},
+  {name:"スネ(右)", x:560, y:320, w:100, h:50},
+  {name:"ラム",     x:460, y:180, w:110, h:50}
 ];
-const DATA = {
-  "たてがみ": {desc:"ぷるぷる脂の甘み。赤身と合わせて“紅白刺し”。", eat:"薄切り＋塩ごま油。"},
-  "ネック": {desc:"首まわりの赤身。噛むほど旨み。", eat:"ユッケ風・軽炙り。"},
-  "肩ロース": {desc:"サシと赤身のバランス抜群。", eat:"生姜醤油・炙り。"},
-  "ロース": {desc:"上品なサシの王道部位。", eat:"生姜醤油＋薬味。"},
-  "ヒレ": {desc:"最も柔らかい赤身。", eat:"わさび醤油。"},
-  "前バラ": {desc:"脂のコクが濃い。", eat:"馬丼・味噌焼き。"},
-  "後バラ": {desc:"腰寄り。濃厚な旨み。", eat:"煮込み・甘辛ダレ。"},
-  "フタエゴ": {desc:"脂と赤身の層のコリコリ食感。", eat:"酢味噌・ポン酢。"},
-  "内モモ": {desc:"しっとり上品な赤身。", eat:"薄切り刺し・わさび。"},
-  "外モモ": {desc:"引き締まった赤身。", eat:"炙りポン酢。"},
-  "シンタマ": {desc:"柔らか赤身。", eat:"赤身刺し。"},
-  "イチボ": {desc:"お尻の柔脂部。", eat:"塩ごま油。"},
-  "スネ(左)": {desc:"コラーゲン豊富。", eat:"煮込み。"},
-  "スネ(右)": {desc:"コラーゲン豊富。", eat:"煮込み。"},
-  "ラム": {desc:"腰上の上品な赤身。", eat:"刺し・タタキ。"}
+
+const EXPLAINS = {
+  "たてがみ": {desc:"ぷるぷるの脂の甘み。赤身と合わせる“紅白刺し”。", eat:"薄切り＋塩ごま油／甘口醤油。"},
+  "ネック":   {desc:"首まわりの赤身。噛むほど旨み。", eat:"ユッケ風（卵黄＋ごま油＋醤油）や軽い炙り。"},
+  "肩ロース": {desc:"サシと赤身のバランス抜群。刺しも焼きも◎。", eat:"生姜醤油・にんにく醤油。"},
+  "ロース":   {desc:"上品なサシの王道部位。甘みと旨みが調和。", eat:"生姜醤油＋薬味。"},
+  "ヒレ":     {desc:"最も柔らかな赤身。クセが少ない。", eat:"わさび醤油でシンプルに。"},
+  "前バラ":   {desc:"胸〜腹側。脂のコクしっかり。", eat:"馬丼・煮込み・味噌ダレ焼き。"},
+  "後バラ":   {desc:"腰寄りのバラ。濃い旨み。", eat:"煮込み・甘辛ダレ。"},
+  "フタエゴ": {desc:"赤身と脂の層のコリコリ食感。", eat:"酢味噌・ポン酢・軽い炙り。"},
+  "内モモ":   {desc:"きめ細かくしっとり上品。", eat:"薄切り刺し＋わさび／生姜醤油。"},
+  "外モモ":   {desc:"引き締まった赤身で食べ応え。", eat:"炙り＋ポン酢。"},
+  "シンタマ": {desc:"もも下部。赤身の旨みと柔らかさのバランス。", eat:"赤身刺し・軽い炙り。"},
+  "イチボ":   {desc:"お尻先端。まろやかな脂の甘み。", eat:"薄切り霜降り風・塩ごま油。"},
+  "スネ(左)": {desc:"コラーゲン豊富。煮込むほどほろっと。", eat:"すじ煮込み・スープ。"},
+  "スネ(右)": {desc:"コラーゲン豊富。煮込むほどほろっと。", eat:"すじ煮込み・スープ。"},
+  "ラム":     {desc:"腰上の上品な赤身。", eat:"刺し・タタキ。"}
 };
 
-const hitsG = document.getElementById('hits');
-const titleEl=document.getElementById('title');
-const descEl=document.getElementById('desc');
-const eatEl=document.getElementById('eat');
+const LS_KEY = "umaPartsHotspots-v2"; // 保存
 
-function createToast(txt){
+// DOM
+const svgHost = document.getElementById('svgHost');
+const overlay = document.getElementById('overlay');
+const hitsG   = document.getElementById('hits');
+const titleEl = document.getElementById('title');
+const descEl  = document.getElementById('desc');
+const eatEl   = document.getElementById('eat');
+
+// 編集モード判定（?edit=1 でON）
+const EDIT_MODE = new URLSearchParams(location.search).get("edit")==="1";
+if(EDIT_MODE){ document.body.classList.add('edit'); toast("編集モード：枠をドラッグで微調整→自動保存"); }
+
+function toast(txt){
   const t=document.createElement('div');
-  t.className="toast";t.textContent=txt;
+  t.className="toast"; t.textContent=txt;
   document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2000);
+  setTimeout(()=>t.remove(), 1800);
 }
 
-// 初回登録 or 保存済み座標
-let spots=JSON.parse(localStorage.getItem('umaPartsSpots')||'{"list":[]}');
+// SVG読み込み→ホストに埋め込み（object/imgは使わない）
+fetch(SVG_FILE + "?t=" + Date.now())
+  .then(r => r.text())
+  .then(txt => {
+    // そのまま埋め込む
+    const wrap = document.createElement('div');
+    wrap.innerHTML = txt.trim();
+    const svg = wrap.querySelector('svg');
+    if(!svg){ svgHost.innerHTML = "SVGを読み込めませんでした。"; return; }
 
-function save(){localStorage.setItem('umaPartsSpots',JSON.stringify(spots));}
-function render(){
-  hitsG.innerHTML="";
-  spots.list.forEach(s=>{
-    const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    // viewBoxをオーバーレイに合わせる（既知サイズ 612x454 で固定）
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height','auto');
+    svg.style.display = 'block';
+    svgHost.appendChild(svg);
+
+    // 既存座標 or 初期プリセット
+    let spots = loadSpots() || { list: PRESETS.slice() };
+    render(spots);
+    if(!loadSpots()) saveSpots(spots); // 初回は保存
+
+    if(EDIT_MODE){
+      enableDrag(spots);
+    }
+  })
+  .catch(()=>{ svgHost.innerHTML = "SVGを読み込めませんでした。ファイル名を確認してください。"; });
+
+function loadSpots(){
+  try{ const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function saveSpots(spots){
+  localStorage.setItem(LS_KEY, JSON.stringify(spots));
+}
+
+function render(spots){
+  // overlay の viewBox を固定（SVGと同一：612x454）
+  overlay.setAttribute('viewBox', '0 0 612 454');
+
+  hitsG.innerHTML = "";
+  spots.list.forEach((s,idx) => {
+    // クリック枠
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
     r.setAttribute('class','hit');
-    r.setAttribute('x',s.x-s.w/2);
-    r.setAttribute('y',s.y-s.h/2);
-    r.setAttribute('width',s.w);
-    r.setAttribute('height',s.h);
-    r.dataset.name=s.name;
+    r.setAttribute('x', s.x - s.w/2);
+    r.setAttribute('y', s.y - s.h/2);
+    r.setAttribute('width', s.w);
+    r.setAttribute('height', s.h);
+    r.dataset.index = idx;
+    r.dataset.name  = s.name;
     hitsG.appendChild(r);
-    r.addEventListener('click',()=>{
+
+    // 編集用ハンドル
+    if(EDIT_MODE){
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('class','handle');
+      c.setAttribute('cx', s.x);
+      c.setAttribute('cy', s.y);
+      c.setAttribute('r', 6);
+      c.dataset.index = idx;
+      hitsG.appendChild(c);
+    }
+
+    // クリックで説明
+    r.addEventListener('click', ()=>{
       document.querySelectorAll('.hit').forEach(e=>e.removeAttribute('aria-selected'));
       r.setAttribute('aria-selected','true');
-      const d=DATA[s.name]||{desc:"—",eat:"—"};
-      titleEl.textContent=s.name;
-      descEl.textContent=d.desc; eatEl.textContent=d.eat;
+      const info = EXPLAINS[s.name] || {desc:"—",eat:"—"};
+      titleEl.textContent = s.name;
+      descEl.textContent  = info.desc;
+      eatEl.textContent   = info.eat;
     });
   });
 }
 
-if(spots.list.length===0){
-  const overlay=document.querySelector('.overlay');
-  const rect=overlay.getBoundingClientRect();
-  let i=0;
-  createToast(`① ${PARTS[i]} の位置をクリック`);
-  overlay.addEventListener('click',function reg(ev){
-    const px=ev.offsetX, py=ev.offsetY;
-    const sx=px/rect.width*VB.w, sy=py/rect.height*VB.h;
-    spots.list.push({name:PARTS[i],x:sx,y:sy,w:64,h:30});
-    i++;
-    if(i<PARTS.length){
-      createToast(`${i+1} / ${PARTS.length}：${PARTS[i]} の位置`);
+// 編集モード：ドラッグで移動＆サイズ変更（Shiftでサイズ、通常は位置）
+function enableDrag(spots){
+  let dragging = null;
+  let start = null;
+
+  overlay.addEventListener('mousedown', (ev)=>{
+    const target = ev.target;
+    if(!(target.classList.contains('hit') || target.classList.contains('handle'))) return;
+
+    const idx = +target.dataset.index;
+    const s = spots.list[idx];
+    dragging = { idx, kind: target.classList.contains('handle') ? 'handle' : 'rect' };
+    start = { mouseX: ev.offsetX, mouseY: ev.offsetY, x:s.x, y:s.y, w:s.w, h:s.h };
+    ev.preventDefault();
+  });
+  overlay.addEventListener('mousemove', (ev)=>{
+    if(!dragging) return;
+    const vb = { w:612, h:454 };
+    const b = overlay.getBoundingClientRect();
+    const mx = ev.offsetX, my = ev.offsetY;
+    const dx = (mx - start.mouseX) / b.width  * vb.w;
+    const dy = (my - start.mouseY) / b.height * vb.h;
+
+    const s = spots.list[dragging.idx];
+    if(ev.shiftKey){
+      // サイズ変更（Shift押しながら）
+      s.w = Math.max(24, start.w + dx);
+      s.h = Math.max(16, start.h + dy);
     }else{
-      overlay.removeEventListener('click',reg);
-      save(); createToast("登録完了！");
-      render();
+      // 位置移動
+      s.x = start.x + dx;
+      s.y = start.y + dy;
+    }
+    render(spots);
+  });
+  window.addEventListener('mouseup', ()=>{
+    if(dragging){
+      saveSpots(spots);
+      dragging = null; start = null;
+      toast("位置を保存しました");
     }
   });
-}else render();
+}
 </script>
 </body>
 </html>

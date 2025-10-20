@@ -1,214 +1,155 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>馬肉 部位図（完成版）</title>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>馬肉 部位図（反応版）</title>
 <style>
-:root{
-  --bg:#fff6f8; --panel:#fff; --line:#f3c4cf; --ink:#222;
-  --hover:rgba(217,108,139,.22); --active:rgba(217,108,139,.35);
-  --accent:#d96c8b;
+:root {
+  --bg:#fff6f8; --accent:#d96c8b;
+  --hover:rgba(217,108,139,.22);
+  --active:rgba(217,108,139,.35);
+  --line:#f3c4cf; --ink:#222;
 }
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);display:flex;gap:28px;padding:22px;align-items:flex-start;
-  font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif}
-.left{position:relative;flex:1 1 auto;display:flex;justify-content:center}
-.stage-wrap{position:relative}
-.stage{display:block;width:min(1080px,92vw);height:auto;border:1px solid var(--line);background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
-.overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.hit{fill:transparent;stroke:transparent;pointer-events:all;cursor:pointer;rx:8;ry:8;transition:fill .15s ease}
-.hit:hover{fill:var(--hover)}
-.hit[aria-selected="true"]{fill:var(--active);stroke:#d96c8b66}
-.right{width:360px;max-width:100%;background:var(--panel);border-left:3px solid var(--line);border-radius:12px;
-  box-shadow:0 6px 18px rgba(0,0,0,.08);padding:18px 20px;position:sticky;top:22px}
-h1{margin:.2rem 0 .6rem;font-size:18px}
-.pill{display:inline-block;font-size:11px;color:#fff;background:var(--accent);border-radius:999px;padding:2px 10px;margin-left:8px}
-.muted{color:#666;font-size:12px;margin-bottom:8px}
-h2{margin:.4rem 0 .5rem;font-size:20px;color:var(--accent)}
-.sec{margin:.6rem 0}.sec h3{margin:.2rem 0 .3rem;font-size:13px;color:#666}.sec p{margin:0;line-height:1.8}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:8px;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:50}
-.badge{display:inline-block;min-width:22px;text-align:center;background:#111;color:#fff;border-radius:6px;font-size:11px;padding:1px 6px;margin-left:6px}
-.help{font-size:12px;color:#777;margin:8px 0 0}
-kbd{background:#eee;border:1px solid #ccc;border-bottom-color:#bbb;border-radius:4px;padding:1px 5px}
-@media (max-width:980px){body{flex-direction:column}.right{width:100%;border-left:none;border-top:3px solid var(--line)}.stage{width:100%}}
+body {
+  margin:0; padding:24px;
+  font-family: "Noto Sans JP", sans-serif;
+  background:var(--bg); color:var(--ink);
+  display:flex; gap:30px;
+}
+.stage-wrap { position:relative; flex:1 1 auto; display:flex; justify-content:center; }
+.overlay {
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  pointer-events:none;
+}
+.hit {
+  fill:transparent; stroke:transparent; pointer-events:all;
+  cursor:pointer; rx:8; ry:8;
+  transition:fill .15s ease;
+}
+.hit:hover { fill:var(--hover); }
+.hit[aria-selected="true"] { fill:var(--active); stroke:#d96c8b66; }
+
+aside {
+  width:340px; background:#fff;
+  border-left:3px solid var(--line);
+  border-radius:10px; padding:18px;
+  box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+h1 { font-size:18px; color:var(--accent); margin-top:0; }
+.sec h3 { margin:.3em 0; font-size:13px; color:#666; }
+p { margin:.2em 0 1em; line-height:1.8; }
+.toast {
+  position:fixed; left:50%; bottom:22px;
+  transform:translateX(-50%);
+  background:#111; color:#fff; padding:10px 16px;
+  border-radius:8px; font-size:14px;
+}
 </style>
 </head>
 <body>
-  <div class="left">
-    <div class="stage-wrap">
-      <!-- あなたのSVG（612×454 / 左向き） -->
-      <object id="map" class="stage" type="image/svg+xml" data="screenshot-2025-10-20-203144.svg"></object>
-      <!-- 透明クリックレイヤー -->
-      <svg class="overlay" viewBox="0 0 612 454" preserveAspectRatio="none" aria-hidden="true">
-        <g id="hits"></g>
-      </svg>
-    </div>
-  </div>
 
-  <aside class="right">
-    <h1>馬肉 部位図 <span class="pill">ホバーで強調 / クリックで説明</span></h1>
-    <div class="muted">※ 初回だけ、各ラベル上を「1クリック」して位置登録（自動保存）。以後はそのまま使えます。</div>
+<div class="stage-wrap">
+  <!-- SVG直接埋め込み -->
+  <svg id="horseSVG" viewBox="0 0 612 454" width="100%" style="max-width:1080px; height:auto; border:1px solid var(--line); border-radius:10px; background:#fff;">
+    <!-- ↓↓↓ あなたのSVG内容をまるごとここに貼り付けてください ↓↓↓ -->
+    <!-- ⚠️ <?xml version〜> や <svg>タグは不要。中の <path> などだけコピペ。 -->
+  </svg>
 
-    <h2 id="title">部位を選択してください</h2>
-    <div class="sec"><h3>説明</h3><p id="desc">図のラベルにカーソルを合わせると強調、クリックでここに固定表示されます。</p></div>
-    <div class="sec"><h3>おすすめの食べ方</h3><p id="eat">EC向けの食べ方ガイド文もセット済み。</p></div>
-    <div class="help">やり直し：URLに <code>?reset=1</code> を付けて開くと初期登録に戻ります。</div>
-  </aside>
+  <!-- 透明クリックレイヤー -->
+  <svg class="overlay" viewBox="0 0 612 454" preserveAspectRatio="none">
+    <g id="hits"></g>
+  </svg>
+</div>
+
+<aside>
+  <h1>馬肉 部位図</h1>
+  <h2 id="title">部位を選択してください</h2>
+  <div class="sec"><h3>説明</h3><p id="desc">部位名の上でクリックすると説明が表示されます。</p></div>
+  <div class="sec"><h3>おすすめの食べ方</h3><p id="eat">EC向け案内を自動表示。</p></div>
+</aside>
 
 <script>
-/* ====== 設定 ====== */
-// 画像の viewBox は 612 x 454 固定（提供頂いたSVGに合わせる）
 const VB = { w:612, h:454 };
-
-// ラベル順（初回登録のガイダンス順）と説明データ
 const PARTS = [
   "たてがみ","ネック","肩ロース","ロース","ヒレ","前バラ","後バラ","フタエゴ",
   "内モモ","外モモ","シンタマ","イチボ","スネ(左)","スネ(右)","ラム"
 ];
-
 const DATA = {
-  "たてがみ": {desc:"ぷるぷるとした脂の甘み。赤身と合わせる“紅白刺し”が定番。", eat:"薄切り＋塩ごま油、または甘口醤油。赤身と一緒に。"},
-  "ネック": {desc:"首まわりの赤身。噛むほど旨みが広がる。", eat:"ユッケ風（卵黄＋ごま油＋醤油）や軽い炙り。"},
-  "肩ロース": {desc:"サシと赤身のバランスが秀逸。万能。", eat:"生姜醤油／にんにく醤油。軽い炙りも◎"},
-  "ロース": {desc:"王道の赤身。上品なサシで甘みと旨み。", eat:"生姜醤油＋薬味。ネギとごま油で香りUP。"},
-  "ヒレ": {desc:"最も柔らかな赤身。クセが少ない。", eat:"わさび醤油でシンプルに。"},
-  "前バラ": {desc:"胸〜腹側。脂のコクしっかり。", eat:"馬丼・煮込み・味噌ダレ焼き。"},
-  "後バラ": {desc:"腰寄りのバラ。濃い旨み。", eat:"煮込み・焼き・甘辛ダレ。"},
-  "フタエゴ": {desc:"赤身と脂の層のコリコリ食感と甘み。", eat:"酢味噌・ポン酢・軽い炙り。"},
-  "内モモ": {desc:"きめ細かくしっとり上品。", eat:"薄切り刺し＋わさび／生姜醤油。"},
-  "外モモ": {desc:"引き締まった赤身で食べ応え。", eat:"薄切り炙り＋ポン酢。"},
-  "シンタマ": {desc:"もも下部。赤身の旨みと柔らかさのバランス。", eat:"赤身刺し・軽い炙り。"},
-  "イチボ": {desc:"お尻先端。まろやかな脂の甘み。", eat:"薄切り霜降り風・塩ごま油。"},
-  "スネ(左)": {desc:"コラーゲン豊富。煮込むほどほろっと。", eat:"すじ煮込み、スープ。"},
-  "スネ(右)": {desc:"コラーゲン豊富。煮込むほどほろっと。", eat:"すじ煮込み、スープ。"},
-  "ラム": {desc:"腰上部の赤身。香り良く上品。", eat:"薄切り刺し・タタキ。"}
+  "たてがみ": {desc:"ぷるぷる脂の甘み。赤身と合わせて“紅白刺し”。", eat:"薄切り＋塩ごま油。"},
+  "ネック": {desc:"首まわりの赤身。噛むほど旨み。", eat:"ユッケ風・軽炙り。"},
+  "肩ロース": {desc:"サシと赤身のバランス抜群。", eat:"生姜醤油・炙り。"},
+  "ロース": {desc:"上品なサシの王道部位。", eat:"生姜醤油＋薬味。"},
+  "ヒレ": {desc:"最も柔らかい赤身。", eat:"わさび醤油。"},
+  "前バラ": {desc:"脂のコクが濃い。", eat:"馬丼・味噌焼き。"},
+  "後バラ": {desc:"腰寄り。濃厚な旨み。", eat:"煮込み・甘辛ダレ。"},
+  "フタエゴ": {desc:"脂と赤身の層のコリコリ食感。", eat:"酢味噌・ポン酢。"},
+  "内モモ": {desc:"しっとり上品な赤身。", eat:"薄切り刺し・わさび。"},
+  "外モモ": {desc:"引き締まった赤身。", eat:"炙りポン酢。"},
+  "シンタマ": {desc:"柔らか赤身。", eat:"赤身刺し。"},
+  "イチボ": {desc:"お尻の柔脂部。", eat:"塩ごま油。"},
+  "スネ(左)": {desc:"コラーゲン豊富。", eat:"煮込み。"},
+  "スネ(右)": {desc:"コラーゲン豊富。", eat:"煮込み。"},
+  "ラム": {desc:"腰上の上品な赤身。", eat:"刺し・タタキ。"}
 };
 
-// 初期幅・高さ（ヒット枠の標準サイズ、あとで個別調整可能）
-const DEFAULT_W = 64, DEFAULT_H = 30;
-
-// 保存キー
-const LS_KEY = "umaPartsHotspots-v1";
-
-// DOM
 const hitsG = document.getElementById('hits');
-const titleEl = document.getElementById('title');
-const descEl  = document.getElementById('desc');
-const eatEl   = document.getElementById('eat');
-const mapObj  = document.getElementById('map');
+const titleEl=document.getElementById('title');
+const descEl=document.getElementById('desc');
+const eatEl=document.getElementById('eat');
 
-// キャッシュ回避
-mapObj.data = mapObj.data + "?t=" + Date.now();
-
-// 位置データのロード／セーブ
-function loadSpots(){
-  try{
-    const q = new URLSearchParams(location.search);
-    if(q.get("reset")==="1"){ localStorage.removeItem(LS_KEY); }
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return null;
-    const obj = JSON.parse(raw);
-    if(!obj || !Array.isArray(obj.list)) return null;
-    return obj;
-  }catch(e){ return null; }
-}
-function saveSpots(obj){
-  localStorage.setItem(LS_KEY, JSON.stringify(obj));
+function createToast(txt){
+  const t=document.createElement('div');
+  t.className="toast";t.textContent=txt;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
 }
 
-// 画面にヒット枠を描く
-function renderSpots(spots){
-  hitsG.innerHTML = "";
+// 初回登録 or 保存済み座標
+let spots=JSON.parse(localStorage.getItem('umaPartsSpots')||'{"list":[]}');
+
+function save(){localStorage.setItem('umaPartsSpots',JSON.stringify(spots));}
+function render(){
+  hitsG.innerHTML="";
   spots.list.forEach(s=>{
-    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    const r=document.createElementNS('http://www.w3.org/2000/svg','rect');
     r.setAttribute('class','hit');
-    r.setAttribute('x', s.x - s.w/2);
-    r.setAttribute('y', s.y - s.h/2);
-    r.setAttribute('width', s.w);
-    r.setAttribute('height', s.h);
-    r.setAttribute('data-name', s.name);
+    r.setAttribute('x',s.x-s.w/2);
+    r.setAttribute('y',s.y-s.h/2);
+    r.setAttribute('width',s.w);
+    r.setAttribute('height',s.h);
+    r.dataset.name=s.name;
     hitsG.appendChild(r);
-
-    r.addEventListener('mouseenter', ()=>{
-      if (!r.hasAttribute('aria-selected')) titleEl.textContent = s.name;
-    });
-    r.addEventListener('mouseleave', ()=>{
-      if (!r.hasAttribute('aria-selected')) titleEl.textContent = '部位を選択してください';
-    });
-    r.addEventListener('click', ()=>{
-      Array.from(hitsG.querySelectorAll('.hit')).forEach(el=>el.setAttribute('aria-selected','false'));
+    r.addEventListener('click',()=>{
+      document.querySelectorAll('.hit').forEach(e=>e.removeAttribute('aria-selected'));
       r.setAttribute('aria-selected','true');
-      const d = DATA[s.name] || {desc:"—",eat:"—"};
-      titleEl.textContent = s.name;
-      descEl.textContent  = d.desc || "—";
-      eatEl.textContent   = d.eat  || "—";
+      const d=DATA[s.name]||{desc:"—",eat:"—"};
+      titleEl.textContent=s.name;
+      descEl.textContent=d.desc; eatEl.textContent=d.eat;
     });
   });
 }
 
-// 初回ガイド（各ラベルの中心を1クリックで登録）
-function startWizard(){
-  const toast = document.createElement('div');
-  toast.className = "toast";
-  document.body.appendChild(toast);
-
-  const spots = { list: [] };
-  let i = 0;
-
-  const overlay = document.querySelector('.overlay');
-  overlay.setAttribute('viewBox', `0 0 ${VB.w} ${VB.h}`);
-
-  const right = overlay.getBoundingClientRect();
-
-  function msg(){
-    toast.innerHTML = `<b>${i+1}/${PARTS.length}</b>　<span>「${PARTS[i]}」のラベルの<span style="text-decoration:underline">中心</span>を1回クリック</span>
-      <span class="badge">初回だけ</span>`;
-  }
-  msg();
-
-  function onClick(ev){
-    // 画面座標 → SVG座標
-    const px = ev.clientX - right.left;
-    const py = ev.clientY - right.top;
-    const sx = px / right.width  * VB.w;
-    const sy = py / right.height * VB.h;
-
-    spots.list.push({name: PARTS[i], x: sx, y: sy, w: DEFAULT_W, h: DEFAULT_H});
+if(spots.list.length===0){
+  const overlay=document.querySelector('.overlay');
+  const rect=overlay.getBoundingClientRect();
+  let i=0;
+  createToast(`① ${PARTS[i]} の位置をクリック`);
+  overlay.addEventListener('click',function reg(ev){
+    const px=ev.offsetX, py=ev.offsetY;
+    const sx=px/rect.width*VB.w, sy=py/rect.height*VB.h;
+    spots.list.push({name:PARTS[i],x:sx,y:sy,w:64,h:30});
     i++;
-    if(i>=PARTS.length){
-      saveSpots(spots);
-      document.body.removeChild(toast);
-      overlay.removeEventListener('click', onClick);
-      renderSpots(spots);
-      // 完了トースト
-      const done = document.createElement('div');
-      done.className = "toast";
-      done.textContent = "初期登録が完了しました。以後は自動保存された位置で動作します。";
-      document.body.appendChild(done);
-      setTimeout(()=>done.remove(), 2500);
+    if(i<PARTS.length){
+      createToast(`${i+1} / ${PARTS.length}：${PARTS[i]} の位置`);
     }else{
-      msg();
+      overlay.removeEventListener('click',reg);
+      save(); createToast("登録完了！");
+      render();
     }
-  }
-  overlay.addEventListener('click', onClick);
-}
-
-mapObj.addEventListener('load', ()=>{
-  // オーバーレイのviewBoxを固定（SVGは612×454）
-  const overlay = document.querySelector('.overlay');
-  overlay.setAttribute('viewBox', `0 0 ${VB.w} ${VB.h}`);
-
-  const cached = loadSpots();
-  if(cached){
-    renderSpots(cached);
-  }else{
-    // 初回だけガイド起動
-    startWizard();
-  }
-});
+  });
+}else render();
 </script>
 </body>
 </html>

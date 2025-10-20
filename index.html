@@ -1,103 +1,104 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🐴 馬肉部位図 - 教材＆EC用マップ</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-      background-color: #fff6f8;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 40px;
-      gap: 40px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>馬刺し部位ガイド</title>
+<style>
+  body {
+    background-color: #ffeeef;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 40px;
+  }
 
-    .map-container {
-      position: relative;
-      width: 720px;
-      height: auto;
-    }
+  .svg-container {
+    position: relative;
+  }
 
-    .map-container img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+  svg {
+    width: 700px;
+    height: auto;
+  }
 
-    /* 各部位ラベルの共通スタイル */
-    .label {
-      position: absolute;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid #e1a4b3;
-      padding: 4px 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #b03c60;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      pointer-events: none;
-    }
+  #info-panel {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 320px;
+  }
 
-    /* ラベル位置（画像に合わせて調整） */
-    .label.tategami { top: 50px; left: 180px; }
-    .label.katarosu { top: 120px; left: 240px; }
-    .label.hire { top: 130px; left: 400px; }
-    .label.baras { top: 220px; left: 300px; }
-    .label.ranpu { top: 280px; left: 480px; }
+  #info-panel h2 {
+    color: #d84d7c;
+    border-bottom: 2px solid #f3a5b9;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
 
-    /* ホバーエフェクト（ほんのり光る） */
-    .map-container:hover {
-      filter: brightness(1.05);
-      transition: all 0.3s ease;
-    }
+  #info-panel p {
+    color: #444;
+    line-height: 1.8;
+  }
 
-    .info-panel {
-      width: 320px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      padding: 20px;
-      position: sticky;
-      top: 40px;
-    }
-
-    .info-panel h2 {
-      color: #b03c60;
-      font-size: 20px;
-      border-bottom: 2px solid #f1b8c5;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
-    }
-
-    .info-panel p {
-      font-size: 14px;
-      line-height: 1.8;
-      color: #444;
-    }
-  </style>
+  svg path {
+    cursor: pointer;
+    transition: fill 0.3s;
+  }
+</style>
 </head>
 <body>
+  <div class="svg-container">
+    <svg id="horse-map" viewBox="0 0 800 400">
+      <image href="スクリーンショット-2025-10-20-203144.svg" width="800" height="400"/>
 
-  <div class="map-container">
-    <img src="screenshot-2025-10-20-203144.svg" alt="馬肉部位図" />
-    <div class="label tategami">タテガミ</div>
-    <div class="label katarosu">肩ロース</div>
-    <div class="label hire">ヒレ</div>
-    <div class="label baras">バラ</div>
-    <div class="label ranpu">ランプ</div>
+      <!-- 各部位のタップ領域（だいたいの位置でOK） -->
+      <path id="tategami" d="M90,60 L210,65 L210,110 L90,100 Z" fill="transparent" />
+      <path id="neck" d="M220,100 L270,160 L230,200 L170,150 Z" fill="transparent" />
+      <path id="rosu" d="M300,120 L400,140 L400,190 L300,180 Z" fill="transparent" />
+      <path id="hire" d="M410,180 L460,190 L460,230 L410,220 Z" fill="transparent" />
+    </svg>
   </div>
 
-  <div class="info-panel">
-    <h2>馬肉の部位説明</h2>
-    <p><strong>タテガミ：</strong>ぷるぷるとした食感で、コラーゲン豊富。</p>
-    <p><strong>肩ロース：</strong>赤身と脂のバランスがよく、刺身や焼きに最適。</p>
-    <p><strong>ヒレ：</strong>最も柔らかい希少部位。上品な味わい。</p>
-    <p><strong>バラ：</strong>旨みが強く煮込み料理に向く人気部位。</p>
-    <p><strong>ランプ：</strong>赤身の味がしっかり、低脂肪高たんぱく。</p>
+  <div id="info-panel">
+    <h2 id="part-name">馬肉の部位説明</h2>
+    <p id="part-desc">部位にカーソルを合わせると、詳細が表示されます。</p>
   </div>
 
+  <script>
+    const parts = {
+      "tategami": {
+        name: "タテガミ",
+        desc: "ぷるぷるとした食感でコラーゲンが豊富。赤身と一緒に食べると最高のバランス。"
+      },
+      "neck": {
+        name: "ネック",
+        desc: "繊維がしっかりしており、煮込み料理に向く部位。味が濃く、旨みが強い。"
+      },
+      "rosu": {
+        name: "ロース",
+        desc: "赤身と脂のバランスが良く、馬刺し・焼きどちらでも楽しめる万能部位。"
+      },
+      "hire": {
+        name: "ヒレ",
+        desc: "最も柔らかい希少部位。クセが少なく上品な甘みと旨みが特徴。"
+      }
+    };
+
+    document.querySelectorAll("svg path").forEach(path => {
+      path.addEventListener("mouseenter", e => e.target.style.fill = "rgba(255, 100, 150, 0.3)");
+      path.addEventListener("mouseleave", e => e.target.style.fill = "transparent");
+      path.addEventListener("click", e => {
+        const p = parts[e.target.id];
+        if (p) {
+          document.getElementById("part-name").textContent = p.name;
+          document.getElementById("part-desc").textContent = p.desc;
+        }
+      });
+    });
+  </script>
 </body>
 </html>

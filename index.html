@@ -1,206 +1,184 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🐴 馬肉 部位ガイド（完全版）</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>馬肉 部位図（ズレ対策・完全修正版）</title>
 <style>
-  :root {
-    --bg: #fdeef0;
-    --card: #fff;
-    --accent: #f7b1b8;
-    --text: #222;
-    --ink: #d6336c;
+  :root{
+    --bg:#fdeef0; --card:#fff; --ink:#d6336c; --hi:rgba(255,0,120,.28); --hi2:rgba(255,0,120,.45);
   }
-
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 2rem;
-    padding: 2rem;
-    box-sizing: border-box;
-  }
-
-  .svgbox {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    max-width: 900px;
-    background: #fff6;
-    border-radius: 12px;
-    position: relative;
-  }
-
-  .svgbox svg {
-    width: 100%;
-    height: auto;
-    max-width: 900px;
-    transition: all 0.2s ease;
-  }
-
-  .edit-dot {
-    fill: white;
-    stroke: #f06;
-    stroke-width: 1.5;
-    cursor: pointer;
-  }
-
-  .info-box {
-    width: 340px;
-    background: var(--card);
-    padding: 1.6rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px #0001;
-  }
-
-  .info-box h2 {
-    color: var(--ink);
-    margin-bottom: 0.6rem;
-    border-bottom: 2px solid var(--accent);
-    display: inline-block;
-  }
-
-  @media (max-width: 900px) {
-    body {
-      flex-direction: column;
-      align-items: center;
-    }
-    .info-box {
-      width: 90%;
-    }
-  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#222;font-family:"Yu Gothic","Hiragino Sans",sans-serif;}
+  .wrap{max-width:1200px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:minmax(300px,1fr) 360px;gap:24px}
+  .stage{background:#fff6;border-radius:14px;padding:12px;display:flex;justify-content:center;align-items:center}
+  .panel{background:var(--card);border-radius:14px;box-shadow:0 2px 10px #0001;padding:18px}
+  .panel h2{margin:0 0 8px;color:var(--ink);border-bottom:2px solid #f7b1b8;display:inline-block}
+  .tip{color:#666;font-size:12px}
+  svg{width:100%;height:auto;display:block}
+  .part{fill:var(--hi);cursor:pointer;transition:.15s}
+  .part:hover{fill:var(--hi2)}
+  .handle{display:none;fill:#fff;stroke:#f06;stroke-width:1.6}
+  .is-edit .handle{display:block}
+  @media (max-width:960px){ .wrap{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<div class="svgbox" id="svgContainer">
-  <img src="screenshot-2025-10-20-203144.svg" id="horseMap" alt="馬肉部位図" />
-</div>
+<div class="wrap">
+  <div class="stage">
+    <!-- 画像と当たり判定を同じviewBox上で描く（612×454に固定）-->
+    <svg id="map" viewBox="0 0 612 454" aria-label="馬肉部位図" role="img">
+      <!-- 元画像（SVG）をimageタグで埋め込み：ここはあなたのファイル名のまま -->
+      <image href="screenshot-2025-10-20-203144.svg" x="0" y="0" width="612" height="454" preserveAspectRatio="xMidYMid meet"></image>
 
-<div class="info-box">
-  <h2>馬肉 部位図</h2>
-  <p id="guide">部位を選択してください</p>
-  <div id="desc"></div>
+      <!-- ↓↓↓ 当たり矩形（viewBox座標で定義：縮尺してもズレない） -->
+      <!-- ※初期値は“だいたい”合わせてある。あとで微調整は下のareasを変えるだけ -->
+      <rect class="part" data-name="たてがみ"/>
+      <rect class="part" data-name="ネック"/>
+      <rect class="part" data-name="肩ロース"/>
+      <rect class="part" data-name="ロース"/>
+      <rect class="part" data-name="ヒレ"/>
+      <rect class="part" data-name="前バラ"/>
+      <rect class="part" data-name="バラ"/>
+      <rect class="part" data-name="後バラ"/>
+      <rect class="part" data-name="内モモ"/>
+      <rect class="part" data-name="外モモ"/>
+      <rect class="part" data-name="イチボ"/>
+      <rect class="part" data-name="ランプ"/>
+      <rect class="part" data-name="ラム"/>
+      <rect class="part" data-name="ブリスケ"/>
+      <rect class="part" data-name="肩バラ"/>
+      <rect class="part" data-name="フロント"/>
+      <rect class="part" data-name="スネ"/>
+      <!-- 編集用の白点（?edit=1で表示） -->
+      <circle class="handle" r="4"></circle>
+    </svg>
+  </div>
+
+  <aside class="panel">
+    <h2 id="title">馬肉 部位図</h2>
+    <p class="tip">部位にカーソル / タップで説明表示。</p>
+    <div id="desc">部位を選択してください。</div>
+  </aside>
 </div>
 
 <script>
-// ============================
-// 部位説明まとめ
-// ============================
+/**
+ * ■ コア修正ポイント
+ *  - 当たり判定は viewBox(612×454) の座標で定義。=> 画像の拡大縮小に影響されずズレない
+ *  - スマホの tap 反応も付与
+ *  - ?edit=1 で白い点（現在位置）が出る（本番では出ない）
+ */
+
 const partsInfo = {
-  "たてがみ": "ぷるぷるとした食感でコラーゲンが豊富。赤身と一緒に食べると最高のバランス。",
-  "ネック": "昔ながらの赤身。噛むほどに旨みが溢れる。ユッケや煮込みにも。",
-  "肩ロース": "ほどよいサシが入った柔らかい部位。刺身・すき焼きに最適。",
-  "ロース": "脂と赤身のバランスが絶妙。馬刺し定番部位。",
-  "ヒレ": "最も柔らかい希少部位。上品な味わいで人気。",
-  "バラ": "旨みの強い部位で煮込み料理にもぴったり。",
-  "前バラ": "コクのある脂身が特徴。焼きにも向く。",
-  "後バラ": "赤身と脂が重なり合う味わい深い部位。",
-  "内モモ": "しっとりとした赤身。低脂肪でヘルシー。",
-  "外モモ": "やや歯ごたえあり。噛むほどに旨みを感じる。",
-  "イチボ": "希少部位で赤身と脂のバランス◎。焼きにもおすすめ。",
-  "ランプ": "腰から尻にかけての赤身。濃厚な旨み。",
-  "ラム": "腰部の柔らかな赤身。刺身・焼きどちらもOK。",
-  "ブリスケ": "肩下の筋肉質な部位。煮込み料理でとろける旨さ。",
-  "肩バラ": "脂のコクが強く、煮込みや焼肉に最適。",
-  "フロント": "前脚の付け根。旨味が濃厚でスジ煮込みに。",
-  "スネ": "筋が多く長時間煮込むととろける食感。馬すじ煮込みの定番。"
+  "たてがみ":"ぷるぷる食感。コラーゲン豊富。赤身と合わせてバランス◎。",
+  "ネック":"昔ながらの赤身。噛むほど旨い。ユッケや煮込みに。",
+  "肩ロース":"ほどよいサシで柔らか。刺身・すき焼き向き。",
+  "ロース":"赤身と脂のバランスが良い定番部位。馬刺しに。",
+  "ヒレ":"最も柔らかい希少部位。上品な味わい。",
+  "前バラ":"コクのある脂身。焼きや煮込みに。",
+  "バラ":"旨みが強い。煮込み料理にも◎。",
+  "後バラ":"赤身と脂が層になり、味わい深い。",
+  "内モモ":"しっとり赤身。低脂肪でヘルシー。",
+  "外モモ":"やや歯ごたえ。噛むほど旨み。",
+  "イチボ":"希少。赤身×脂のバランス良。焼きにも。",
+  "ランプ":"腰〜尻の赤身。濃い旨み。",
+  "ラム":"腰部の柔らか赤身。刺身・焼きOK。",
+  "ブリスケ":"肩下の筋肉質。煮込みでとろける。",
+  "肩バラ":"脂のコクが強い。焼肉・煮込みに。",
+  "フロント":"前脚つけ根。濃厚でスジ煮込みに。",
+  "スネ":"スジが多いが長時間煮込みでトロトロ。"
 };
 
-// ============================
-// 編集モード判定
-// ============================
-const urlParams = new URLSearchParams(window.location.search);
-const editMode = urlParams.get("edit") === "1";
-
-// ============================
-// 座標設定（SVG基準で微調整済）
-// ============================
+// ===== viewBox座標（612×454）での矩形（x,y,w,h） =====
+// ※初期合わせ。もっとドンピシャにしたくなったらここを触るだけ
 const areas = {
-  "たてがみ": {x:180, y:80, w:140, h:60},
-  "ネック": {x:220, y:140, w:200, h:90},
-  "肩ロース": {x:330, y:130, w:140, h:70},
-  "ロース": {x:460, y:150, w:160, h:70},
-  "ヒレ": {x:470, y:230, w:130, h:50},
-  "バラ": {x:380, y:280, w:140, h:70},
-  "前バラ": {x:360, y:260, w:120, h:60},
-  "後バラ": {x:500, y:260, w:140, h:60},
-  "内モモ": {x:620, y:240, w:90, h:80},
-  "外モモ": {x:640, y:180, w:90, h:70},
-  "イチボ": {x:630, y:150, w:80, h:50},
-  "ランプ": {x:580, y:220, w:90, h:70},
-  "ラム": {x:600, y:120, w:100, h:60},
-  "ブリスケ": {x:270, y:230, w:90, h:80},
-  "肩バラ": {x:320, y:200, w:110, h:80},
-  "フロント": {x:280, y:320, w:70, h:100},
-  "スネ": {x:290, y:380, w:60, h:120}
+  "たてがみ": {x:130, y:80,  w:185, h:48},
+  "ネック"  : {x:205, y:140, w:210, h:90},
+  "肩ロース": {x:305, y:135, w:140, h:75},
+  "ロース"  : {x:430, y:155, w:150, h:65},
+  "ヒレ"    : {x:450, y:228, w:125, h:52},
+  "前バラ"  : {x:350, y:255, w:125, h:65},
+  "バラ"    : {x:380, y:290, w:150, h:70},
+  "後バラ"  : {x:505, y:255, w:120, h:65},
+  "内モモ"  : {x:612-190, y:235, w:85,  h:85}, // 右脚付け根内側
+  "外モモ"  : {x:612-170, y:175, w:85,  h:70},
+  "イチボ"  : {x:612-185, y:150, w:75,  h:46},
+  "ランプ"  : {x:612-220, y:215, w:90,  h:70},
+  "ラム"    : {x:612-210, y:120, w:105, h:58},
+  "ブリスケ": {x:265, y:225, w:90,  h:82},
+  "肩バラ"  : {x:320, y:195, w:115, h:83},
+  "フロント": {x:282, y:320, w:72,  h:110},
+  "スネ"    : {x:294, y:378, w:60,  h:120}
 };
 
-// ============================
-// 描画
-// ============================
-const container = document.getElementById("svgContainer");
-const img = document.getElementById("horseMap");
-const descBox = document.getElementById("desc");
-const guideText = document.getElementById("guide");
+const map = document.getElementById('map');
+const parts = [...map.querySelectorAll('.part')];
+const edit = new URLSearchParams(location.search).get('edit') === '1';
+if (edit) document.body.classList.add('is-edit');
 
-img.onload = () => {
-  const svgNS = "http://www.w3.org/2000/svg";
-  const overlay = document.createElementNS(svgNS, "svg");
-  overlay.setAttribute("width", "100%");
-  overlay.setAttribute("height", "100%");
-  overlay.style.position = "absolute";
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  container.appendChild(overlay);
+const title = document.getElementById('title');
+const desc  = document.getElementById('desc');
 
-  for (const [name, pos] of Object.entries(areas)) {
-    const rect = document.createElementNS(svgNS, "rect");
-    rect.setAttribute("x", pos.x);
-    rect.setAttribute("y", pos.y);
-    rect.setAttribute("width", pos.w);
-    rect.setAttribute("height", pos.h);
-    rect.setAttribute("fill", "rgba(255,0,100,0.15)");
-    rect.style.cursor = "pointer";
-    rect.style.transition = "0.2s";
-    rect.setAttribute("data-name", name);
-
-    // hover強調
-    rect.addEventListener("mouseenter", () => rect.setAttribute("fill", "rgba(255,0,100,0.35)"));
-    rect.addEventListener("mouseleave", () => rect.setAttribute("fill", "rgba(255,0,100,0.15)"));
-
-    // クリックまたはタップ
-    const activate = () => {
-      guideText.innerHTML = `<b>${name}</b>`;
-      descBox.textContent = partsInfo[name] || "説明が未登録です。";
-    };
-    rect.addEventListener("click", activate);
-    rect.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      activate();
-    });
-
-    // 編集モード時の白丸
-    if (editMode) {
-      const dot = document.createElementNS(svgNS, "circle");
-      dot.classList.add("edit-dot");
-      dot.setAttribute("cx", pos.x + pos.w / 2);
-      dot.setAttribute("cy", pos.y + pos.h / 2);
-      dot.setAttribute("r", 6);
-      overlay.appendChild(dot);
-    }
-
-    overlay.appendChild(rect);
+function paintRects(){
+  parts.forEach(r=>{
+    const name = r.dataset.name;
+    const a = areas[name];
+    if (!a) return;
+    r.setAttribute('x', a.x);
+    r.setAttribute('y', a.y);
+    r.setAttribute('width',  a.w);
+    r.setAttribute('height', a.h);
+  });
+  // 編集用白点：最後のcircleを中央に置く（代表点）
+  const h = map.querySelector('.handle');
+  if (h){
+    const a = areas["たてがみ"];
+    h.setAttribute('cx', a.x + a.w/2);
+    h.setAttribute('cy', a.y + a.h/2);
   }
-};
-</script>
+}
 
+function bindEvents(){
+  const activate = (name)=>{
+    title.textContent = name;
+    desc.textContent  = partsInfo[name] || "説明登録なし。";
+  };
+  parts.forEach(r=>{
+    const name = r.dataset.name;
+    const fire = ()=>activate(name);
+    r.addEventListener('click', fire);
+    r.addEventListener('touchstart', (e)=>{e.preventDefault(); fire();}, {passive:false});
+  });
+}
+
+paintRects();
+bindEvents();
+
+/* --- ここから下は「微調整を一瞬でやる用」：本番動作には影響なし ------------------
+   ?nudge=1 で起動。矩形の上にカーソルを置き、矢印キーで1px、Shift+矢印で5px移動。
+   位置は console に出すだけ（必要なら値をここに貼り戻せばOK）。
+---------------------------------------------------------------------------- */
+const nudge = new URLSearchParams(location.search).get('nudge') === '1';
+if (nudge){
+  let current = null;
+  parts.forEach(el=>{
+    el.addEventListener('mouseenter',()=> current = el);
+    el.addEventListener('mouseleave',()=> current = null);
+  });
+  window.addEventListener('keydown',e=>{
+    if(!current) return;
+    const a = areas[current.dataset.name];
+    const step = e.shiftKey ? 5 : 1;
+    if (e.key === 'ArrowLeft')  a.x -= step;
+    if (e.key === 'ArrowRight') a.x += step;
+    if (e.key === 'ArrowUp')    a.y -= step;
+    if (e.key === 'ArrowDown')  a.y += step;
+    paintRects();
+    console.log(current.dataset.name, a);
+  });
+}
+</script>
 </body>
 </html>

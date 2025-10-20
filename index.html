@@ -1,106 +1,241 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>馬刺し部位ガイド</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>馬肉 部位図（ホバー強調・クリック説明）</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <style>
-  body {
-    background-color: #ffeeef;
-    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 40px;
-    padding: 40px;
+  :root{
+    --bg:#fff6f8;
+    --panel:#fff;
+    --line:#f3c4cf;
+    --ink:#333;
+    --accent:#d96c8b;
+    --hover:rgba(217,108,139,0.25); /* ほんのり桃色 */
+    --active:rgba(217,108,139,0.38);/* クリック後やや濃い */
   }
-
-  .svg-container {
-    position: relative;
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    display:flex; gap:28px; padding:24px; align-items:flex-start;
+    font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
   }
+  .left{ position:relative; flex:1 1 auto; display:flex; justify-content:center; }
+  .stage-wrap{ position:relative; }
+  .stage{ display:block; width:min(1080px,90vw); height:auto; border:1px solid var(--line); background:#fff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.06); }
+  /* オーバーレイSVG（当たり判定＆ハイライト） */
+  .overlay{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  .hit{ fill:transparent; stroke:transparent; cursor:pointer; pointer-events:all; transition:fill .15s ease, stroke .15s ease; rx:6; ry:6; }
+  .hit:hover{ fill:var(--hover); }
+  .hit[aria-selected="true"]{ fill:var(--active); stroke:#d96c8b66; }
 
-  svg {
-    width: 700px;
-    height: auto;
+  .right{
+    width:360px; max-width:100%; background:var(--panel);
+    border-left:3px solid var(--line); border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+    padding:18px 20px;
+    position:sticky; top:24px;
   }
-
-  #info-panel {
-    background: white;
-    border-radius: 16px;
-    padding: 20px 30px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 320px;
-  }
-
-  #info-panel h2 {
-    color: #d84d7c;
-    border-bottom: 2px solid #f3a5b9;
-    padding-bottom: 6px;
-    margin-bottom: 10px;
-  }
-
-  #info-panel p {
-    color: #444;
-    line-height: 1.8;
-  }
-
-  svg path {
-    cursor: pointer;
-    transition: fill 0.3s;
+  h1{margin:.2rem 0 .6rem; font-size:18px; color:#444}
+  .muted{color:#666; font-size:12px; margin-bottom:8px}
+  h2{margin:.4rem 0 .5rem; font-size:20px; color:var(--accent)}
+  .sec{margin:.6rem 0}
+  .sec h3{margin:.2rem 0 .3rem; font-size:13px; color:#666}
+  .sec p{margin:0; line-height:1.8}
+  .pill{display:inline-block; font-size:11px; color:#fff; background:var(--accent); border-radius:999px; padding:2px 10px; margin-left:8px}
+  @media (max-width: 980px){
+    body{flex-direction:column}
+    .right{width:100%; border-left:none; border-top:3px solid var(--line)}
+    .stage{width:100%}
   }
 </style>
 </head>
 <body>
-  <div class="svg-container">
-    <svg id="horse-map" viewBox="0 0 800 400">
-      <image href="スクリーンショット-2025-10-20-203144.svg" width="800" height="400" />
-
-      <!-- 修正版クリック領域 -->
-      <g id="areas" style="pointer-events: all;">
-        <path id="tategami" d="M130,40 L260,50 L240,100 L120,90 Z" fill="transparent" pointer-events="all"/>
-        <path id="neck" d="M140,90 L240,120 L220,160 L150,140 Z" fill="transparent" pointer-events="all"/>
-        <path id="rosu" d="M270,120 L390,130 L390,170 L270,160 Z" fill="transparent" pointer-events="all"/>
-        <path id="hire" d="M400,180 L460,190 L460,230 L400,220 Z" fill="transparent" pointer-events="all"/>
-      </g>
-    </svg>
+  <div class="left">
+    <div class="stage-wrap">
+      <!-- 背景：あなたの部位図SVGをそのまま表示（テキスト・線はそのまま） -->
+      <object id="map" class="stage" type="image/svg+xml" data="screenshot-2025-10-20-203144.svg"></object>
+      <!-- 透明オーバーレイ（ラベルbboxに自動で矩形ヒットを生成して載せる） -->
+      <svg class="overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <g id="hits"></g>
+      </svg>
+    </div>
   </div>
 
-  <div id="info-panel">
-    <h2 id="part-name">馬肉の部位説明</h2>
-    <p id="part-desc">部位にカーソルを合わせると、詳細が表示されます。</p>
-  </div>
+  <aside class="right">
+    <h1>馬肉 部位図<span class="pill">ホバーで強調 / クリックで説明</span></h1>
+    <div class="muted">※ 図のラベル（「タテガミ」「ロース」など）にカーソルを合わせるとその範囲が淡く色づきます。</div>
 
-  <script>
-    const parts = {
-      "tategami": {
-        name: "タテガミ",
-        desc: "ぷるぷるとした食感でコラーゲンが豊富。赤身と一緒に食べると最高のバランス。"
-      },
-      "neck": {
-        name: "ネック",
-        desc: "繊維がしっかりしており、煮込み料理に向く部位。味が濃く、旨みが強い。"
-      },
-      "rosu": {
-        name: "ロース",
-        desc: "赤身と脂のバランスが良く、馬刺し・焼きどちらでも楽しめる万能部位。"
-      },
-      "hire": {
-        name: "ヒレ",
-        desc: "最も柔らかい希少部位。クセが少なく上品な甘みと旨みが特徴。"
-      }
-    };
+    <h2 id="title">部位を選択してください</h2>
+    <div class="sec">
+      <h3>説明</h3>
+      <p id="desc">図のラベルにマウスを重ねると反応します。クリックでここに説明が固定表示されます。</p>
+    </div>
+    <div class="sec">
+      <h3>おすすめの食べ方</h3>
+      <p id="eat">EC向けの食べ方ガイドも部位ごとに用意しています。</p>
+    </div>
+  </aside>
 
-    document.querySelectorAll("#areas path").forEach(path => {
-      path.addEventListener("mouseenter", e => e.target.style.fill = "rgba(255, 100, 150, 0.3)");
-      path.addEventListener("mouseleave", e => e.target.style.fill = "transparent");
-      path.addEventListener("click", e => {
-        const p = parts[e.target.id];
-        if (p) {
-          document.getElementById("part-name").textContent = p.name;
-          document.getElementById("part-desc").textContent = p.desc;
-        }
-      });
+<script>
+/**
+ * 仕様：
+ * - <object> 内部のSVGから <text> 要素（ラベル）を収集
+ * - その getBBox() を元に、同じ位置・同じサイズの透明矩形ヒットを overlay に生成
+ * - ホバーで桃色にハイライト、クリックで右パネルに説明表示
+ * - 既存の見た目（図中の文字や線）は一切変更しない
+ */
+
+const DATA = {
+  // よく見かける部位名すべてを用意（存在するものだけ自動マッチ）
+  "たてがみ": {
+    desc: "ぷるぷるとした脂の甘み。赤身と合わせる“紅白刺し”が定番。",
+    eat: "薄切り＋塩とごま油、または甘口醤油。赤身と一緒に。"
+  },
+  "ネック": {
+    desc: "首まわりの赤身。噛むほどに旨みが広がるコク深さ。",
+    eat: "ユッケ風（卵黄＋ごま油＋醤油）や、たたきで香ばしく。"
+  },
+  "肩ロース": {
+    desc: "サシと赤身のバランスが秀逸。刺身にも焼きにも万能。",
+    eat: "生姜醤油／にんにく醤油。軽い炙りも◎。"
+  },
+  "ロース": {
+    desc: "馬刺しの王道。上品なサシが甘みと旨みを引き立てる。",
+    eat: "王道の生姜醤油。ネギとごま油で香りプラス。"
+  },
+  "ヒレ": {
+    desc: "最も柔らかな赤身。クセが少なく贈答にも人気。",
+    eat: "わさび醤油でシンプルに。霜降りとの食べ比べも◎。"
+  },
+  "前バラ": {
+    desc: "胸〜腹側。脂のコクと旨みがしっかり。加熱でも満足度◎。",
+    eat: "馬丼・煮込み・味噌ダレ焼き。"
+  },
+  "バラ": {
+    desc: "脂の層による濃厚なコク。加熱向きで満足感あり。",
+    eat: "煮込み・焼き・甘辛ダレ。"
+  },
+  "フタエゴ": {
+    desc: "赤身と脂の層が作るコリコリ食感と甘みが人気。",
+    eat: "酢味噌・ポン酢でさっぱり。軽い炙りも美味。"
+  },
+  "外モモ": {
+    desc: "引き締まった赤身で食べ応え。低脂肪でも旨みしっかり。",
+    eat: "薄切り炙り＋ポン酢／生姜醤油。"
+  },
+  "内モモ": {
+    desc: "きめ細かくしっとり。さっぱり上品で女性人気も高い。",
+    eat: "薄切り馬刺し＋薬味、わさび／生姜醤油。"
+  },
+  "シンタマ": {
+    desc: "もも下部。赤身の旨みと柔らかさのバランス良好。",
+    eat: "赤身刺し、軽い炙り。わさび醤油。"
+  },
+  "イチボ": {
+    desc: "お尻先端。まろやかな脂の甘みが加わる贅沢部位。",
+    eat: "薄切り霜降り風に。塩＋ごま油、甘口醤油。"
+  },
+  "ランプ": {
+    desc: "腰〜尻の赤身。濃厚な旨みで刺身・ステーキ両対応。",
+    eat: "厚めのタタキや厚切り馬刺しで。"
+  },
+  "スネ": {
+    desc: "コラーゲン豊富。煮込むほどほろっと柔らかに。",
+    eat: "すじ煮込み、シチュー、スープ。"
+  },
+  "レバー": {
+    desc: "鉄分豊富で濃厚なコク（生食は地域の規制に従って提供）。",
+    eat: "軽い加熱で甘みアップ。ごま油＋塩。"
+  }
+};
+
+const titleEl = document.getElementById('title');
+const descEl  = document.getElementById('desc');
+const eatEl   = document.getElementById('eat');
+const hitsG   = document.getElementById('hits');
+const mapObj  = document.getElementById('map');
+
+// ページキャッシュ強制回避（毎回最新を読む）
+mapObj.data = mapObj.data + '?t=' + Date.now();
+
+mapObj.addEventListener('load', () => {
+  const svg = mapObj.contentDocument && mapObj.contentDocument.documentElement;
+  if(!svg){ return; }
+
+  // viewBox （例: 0 0 300 200）を取得し、オーバーレイに反映
+  const vb = svg.viewBox && svg.viewBox.baseVal
+    ? { x: svg.viewBox.baseVal.x, y: svg.viewBox.baseVal.y, width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height }
+    : { x:0, y:0, width: svg.width.baseVal.value || 300, height: svg.height.baseVal.value || 200 };
+
+  const overlay = document.querySelector('.overlay');
+  overlay.setAttribute('viewBox', `${vb.x} ${vb.y} ${vb.width} ${vb.height}`);
+
+  // SVG内の <text> を全部拾って、ラベルとして扱う
+  const texts = Array.from(svg.querySelectorAll('text'));
+
+  // すでにある四角いラベル（<rect>＋<text>）のような構造にも対応：
+  // 「部位名がDATAにあるか」をキーにする
+  texts.forEach((t,i) => {
+    const name = t.textContent.trim().replace(/\s+/g,'');
+    if(!name) return;
+
+    // 部位名の正規化（カタカナ/ひらがなゆらぎ・小さい「ッ」など最低限）
+    // ※ 必要に応じて増やせます
+    const key = name
+      .replace(/ﾀﾃｶﾞﾐ/g,'たてがみ')
+      .replace(/タテガミ/g,'たてがみ')
+      .replace(/ﾈｯｸ/g,'ネック')
+      .replace(/ﾛｰｽ/g,'ロース')
+      .replace(/ﾋﾚ/g,'ヒレ');
+
+    // データがある部位だけ反応
+    const data = DATA[name] || DATA[key];
+    if(!data) return;
+
+    // ラベルの実際の表示範囲（bbox）を取得
+    const bbox = t.getBBox();
+    const pad = Math.max(bbox.height * 0.6, 8); // ちょい広めの当たり判定
+    const x = bbox.x - pad/2;
+    const y = bbox.y - pad/2;
+    const w = bbox.width + pad;
+    const h = bbox.height + pad;
+
+    // 透明ヒット（矩形）生成：位置はSVG座標のまま
+    const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    r.setAttribute('class','hit');
+    r.setAttribute('x', x);
+    r.setAttribute('y', y);
+    r.setAttribute('width',  w);
+    r.setAttribute('height', h);
+    r.setAttribute('data-name', name);
+    hitsG.appendChild(r);
+
+    // イベント付与
+    r.addEventListener('mouseenter', () => {
+      if (!r.hasAttribute('aria-selected')) titleEl.textContent = (DATA[name]?.label || name);
     });
-  </script>
+    r.addEventListener('mouseleave', () => {
+      if (!r.hasAttribute('aria-selected')) titleEl.textContent = '部位を選択してください';
+    });
+    r.addEventListener('click', () => {
+      // 選択状態の見た目更新
+      Array.from(hitsG.querySelectorAll('.hit')).forEach(el=>el.setAttribute('aria-selected','false'));
+      r.setAttribute('aria-selected','true');
+
+      const d = DATA[name] || DATA[key];
+      titleEl.textContent = d?.label || name;
+      descEl.textContent  = d?.desc || '—';
+      eatEl.textContent   = d?.eat  || '—';
+    });
+  });
+
+  // もし何も拾えなかった場合 → ラベルフォントが<image>として埋め込まれているケース。
+  // その場合はエラーハンドリング（何もしない＝見た目は壊さない）
+});
+
+</script>
 </body>
 </html>

@@ -1,187 +1,216 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>🐎 馬の部位インタラクティブ解説（本格版 / 埋め込みSVG済み）</title>
-  <meta name="description" content="馬の部位をタップで『説明・食べ方・調理の仕方・食感』を表示。提供SVGをそのまま内包。編集UIなし、クリック判定は広め。">
-  <style>
-    :root{
-      --bg1:#0b1020; --bg2:#0a0f1e; --card:#12192b; --ink:#e9f1ff; --muted:#9eb0d1; --line:#223155;
-      --accent:#6ea8ff; --hit:#5db0ff33; --sel:#6ea8ff99;
-      --hit-width:36; /* ← ここだけでタッチ判定の広さ調整可 */
-      --label:#cfe1ff;
-    }
-    html,body{height:100%}
-    *{box-sizing:border-box}
-    body{
-      margin:0; font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
-      background:linear-gradient(180deg,var(--bg1) 0%, var(--bg2) 100%); color:var(--ink)
-    }
-    header{padding:18px 16px 4px; max-width:1200px; margin:auto}
-    h1{margin:0 0 4px; font-size:clamp(20px,3vw,28px)}
-    .sub{color:var(--muted); font-size:13px}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>馬刺し 部位ガイド</title>
+<style>
+  :root{
+    --bg:#fbeff3;          /* ページ背景（淡い桃） */
+    --panel:#fff7f9;       /* 情報パネル背景（さらに淡い桃） */
+    --line:#f3c4cf;        /* 枠線（桃） */
+    --ink:#333;            /* 文字色 */
+    --accent:#d96c8b;      /* 見出しの差し色 */
+    --hover:#f5b6c644;     /* ホバー時のオーバーレイ色(透明桃) */
+    --active:#d96c8b66;    /* 選択時のオーバーレイ色(濃いめ) */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+    color:var(--ink); background:var(--bg);
+    display:flex; gap:0; min-height:100vh; overflow:hidden;
+  }
+  .left{
+    flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  .right{
+    width:36rem; max-width:100%; background:var(--panel); border-left:3px solid var(--line);
+    box-shadow:-6px 0 18px rgba(0,0,0,.05); overflow:auto; padding:20px;
+  }
+  h1{font-size:20px; margin:0 0 8px; color:#444}
+  .muted{color:#666; font-size:13px; margin-bottom:8px}
+  h2{margin:.2rem 0 .6rem; color:var(--accent); font-size:22px}
+  .sec{margin:.75rem 0}
+  .sec h3{margin:.2rem 0 .4rem; font-size:14px; color:#666}
+  .sec p{margin:0; line-height:1.8}
 
-    .wrap{display:grid; grid-template-columns:1.25fr 1fr; gap:18px; padding:12px 16px 28px; max-width:1200px; margin:auto}
-    @media (max-width: 960px){ .wrap{ grid-template-columns:1fr; } }
+  /* SVGボード */
+  .board{
+    width:100%; max-width:1100px; background:#fff; border:1px solid var(--line);
+    border-radius:14px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,.06)
+  }
+  .stage{width:100%; height:auto; display:block; background:#fff}
+  /* クリックエリアの見た目（通常は透明、ホバー/選択時のみ色） */
+  .area{fill:transparent; stroke:transparent; stroke-width:20; vector-effect:non-scaling-stroke; cursor:pointer; transition:fill .15s ease, stroke .15s ease}
+  .area:hover{fill:var(--hover)}
+  .area[aria-selected="true"]{fill:var(--active); stroke:#d96c8b88}
 
-    .stage{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:12px; position:relative}
-    .legend{display:flex; gap:8px; flex-wrap:wrap; padding:6px 6px 10px}
-    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#0e1526; border:1px solid var(--line); color:var(--muted); font-size:12px}
-    .badge i{width:10px; height:10px; border-radius:2px; background:var(--accent); display:inline-block}
+  /* ラベル (必要なら表示) */
+  .label{font-size:11px; fill:#444; paint-order:stroke; stroke:#fff; stroke-width:3; stroke-linejoin:round}
 
-    .svgbox{position:relative; aspect-ratio:16/9; width:100%;
-      background:radial-gradient(900px 480px at 50% 10%, #11203b 0%, #0c1324 45%, #0b1020 100%);
-      border-radius:12px; overflow:hidden; border:1px solid var(--line)
-    }
-    svg{display:block; width:100%; height:100%}
-
-    /* 見た目のシルエット（あなたのSVG） */
-    .horseShape{fill:#0e1730; stroke:#24365e}
-
-    /* 部位オーバーレイ（見た目） */
-    .part.visual{fill:#89a7d930; stroke:#8fb4ff66; stroke-width:1.2; cursor:pointer; transition:all .15s ease}
-    .part.visual:hover{fill:var(--hit)}
-    .part.visual[aria-selected="true"]{fill:var(--sel); stroke:#bcd6ff}
-    /* タッチ判定（透明） */
-    .part.hit{fill:none; stroke:transparent; stroke-width:var(--hit-width); pointer-events:stroke; vector-effect:non-scaling-stroke}
-
-    .label{font-size:12px; fill:var(--label); text-shadow:0 1px 0 #0006}
-
-    .panel{position:relative; background:#0f1526; border:1px solid var(--line); border-radius:16px; overflow:hidden}
-    .panel header{padding:14px 16px; border-bottom:1px solid var(--line)}
-    .panel h2{margin:0; font-size:18px}
-    .chip{color:var(--muted); font-size:12px}
-    .tabs{display:flex; gap:6px; padding:10px; border-bottom:1px solid var(--line); overflow:auto}
-    .tab{flex:0 0 auto; padding:8px 12px; background:#0e1528; border:1px solid var(--line); color:var(--muted); border-radius:10px; cursor:pointer; font-size:13px}
-    .tab[aria-selected="true"]{background:#15213a; color:var(--ink); border-color:#34508a}
-    .content{padding:14px 16px; min-height:220px}
-    .content h3{margin:0 0 6px; font-size:14px; color:var(--muted)}
-    .content p{margin:0 0 10px; line-height:1.9}
-
-    .howto{display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:10px 12px}
-    .howto .card{background:#0e1526; border:1px solid var(--line); border-radius:12px; padding:10px; color:var(--ink)}
-    .howto b{color:#8ec1ff}
-    @media (max-width:640px){ .howto{grid-template-columns:1fr} }
-  </style>
+  @media (max-width: 980px){
+    body{flex-direction:column}
+    .right{width:100%; border-left:none; border-top:3px solid var(--line)}
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>🐴 馬の部位インタラクティブ解説（本格版 / 埋め込み済み）</h1>
-    <div class="sub">提供SVGを内包。部位はタップで説明表示。クリック判定広め＆編集UIなし。</div>
-  </header>
 
-  <div class="wrap">
-    <section class="stage">
-      <div class="legend">
-        <span class="badge"><i></i> タップで選択／もう一度で解除（判定広め）</span>
-        <span class="badge"><i style="background:#a6ffb1"></i> モバイルOK（ピンチで拡大）</span>
-      </div>
+  <div class="left">
+    <div class="board">
+      <!-- viewBoxは 9P0Yuv01.svg と合わせて 300x200。背景にそのまま敷く -->
+      <svg class="stage" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-label="馬体図とクリックエリア">
+        <!-- 背景：あなたのSVGファイルをそのまま描画 -->
+        <image href="https://ganngimariasyu.github.io/uma-parts/9P0Yuv01.svg" x="0" y="0" width="300" height="200" preserveAspectRatio="xMidYMid meet" />
 
- <div class="svgbox">
-<img src="https://ganngimariasyu.github.io/uma-parts/9P0Yuv01.svg" alt="馬のシルエット" style="width:100%;max-width:900px;display:block;margin:auto;">
-</div>
+        <!-- ======== クリックエリア（一般的な部位位置に準拠して配置）========
+             ※ 透明。ホバー/選択で色が出る。座標は viewBox(300x200) 前提。
+             必要なら後で座標微調整だけでOK（見た目は背景画像のまま）。 -->
+        <!-- 1 たてがみ（首の上側の脂） -->
+        <polygon class="area" data-key="たてがみ"
+          points="78,36 105,28 132,31 135,40 115,45 92,45" />
+        <!-- 2 ネック（首筋） -->
+        <polygon class="area" data-key="ネック"
+          points="95,46 135,44 150,55 150,70 120,72 98,64" />
+        <!-- 3 肩ロース（肩～背中手前） -->
+        <polygon class="area" data-key="肩ロース"
+          points="150,60 178,60 188,72 188,86 160,88 148,78" />
+        <!-- 7 ロース（背中中央） -->
+        <polygon class="area" data-key="ロース"
+          points="188,70 230,72 244,85 242,96 210,98 188,90" />
+        <!-- 4 ヒレ（腰の内側・柔らか） -->
+        <polygon class="area" data-key="ヒレ"
+          points="200,98 222,98 235,105 232,116 210,118 198,110" />
+        <!-- 5 前バラ（胸～腹前側） -->
+        <polygon class="area" data-key="前バラ"
+          points="140,90 170,92 178,108 165,122 138,118 132,102" />
+        <!-- 6 フタエゴ（腹下の層状脂） -->
+        <polygon class="area" data-key="フタエゴ"
+          points="170,114 198,120 205,132 186,140 162,135 158,122" />
+        <!-- 8 スネ（前脚すね） -->
+        <polygon class="area" data-key="スネ"
+          points="120,122 132,136 128,160 118,172 110,166 112,140" />
+        <!-- 9 外モモ（後肢外側） -->
+        <polygon class="area" data-key="外モモ"
+          points="238,110 260,112 272,128 268,144 248,150 236,140" />
+        <!-- 10 内モモ（後肢内側） -->
+        <polygon class="area" data-key="内モモ"
+          points="218,118 236,120 240,138 230,150 212,146 206,130" />
+        <!-- 11 シンタマ（もも下部） -->
+        <polygon class="area" data-key="シンタマ"
+          points="196,126 210,130 210,146 198,154 186,146 186,132" />
+        <!-- 12 イチボ（お尻先端） -->
+        <polygon class="area" data-key="イチボ"
+          points="248,96 270,96 284,106 278,116 260,118 246,110" />
+        <!-- 13 ランプ（腰～尻の赤身） -->
+        <polygon class="area" data-key="ランプ"
+          points="228,96 248,96 246,110 230,116 214,110 214,100" />
 
-
-      <div class="howto">
-        <div class="card"><b>1) タップして表示</b><br>部位をタップすると右に詳細が出ます。もう一度タップで解除。</div>
-        <div class="card"><b>2) 食べ方の提案</b><br>「食べ方」タブに人気の食べ方を載せています。接客トークにどうぞ。</div>
-      </div>
-    </section>
-
-    <aside class="panel" id="panel">
-      <header>
-        <h2 id="partName">部位をタップしてください</h2>
-        <div class="chip" id="chip">—</div>
-      </header>
-      <nav class="tabs" role="tablist" aria-label="情報タブ">
-        <button class="tab" role="tab" aria-selected="true"  data-tab="desc">説明</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="eat">食べ方</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="cook">調理の仕方</button>
-        <button class="tab" role="tab" aria-selected="false" data-tab="texture">食感</button>
-      </nav>
-      <div class="content" id="content">
-        <h3>ガイド</h3>
-        <p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。編集機能は省いてあります。</p>
-      </div>
-    </aside>
+        <!-- ラベル（必要なら表示。初期は非表示にしている） -->
+        <!-- <text class="label" x="120" y="40">たてがみ</text> -->
+      </svg>
+    </div>
   </div>
 
-  <script>
-    const DATA = {
-      "ロース":{desc:"背中の中心付近の赤身で、筋繊維がきめ細かくクセが少ない“王道部位”。初めての方にもおすすめ。脂は少なめで後味は軽いが、赤身の旨味が濃い。",eat:"薄切りの馬刺しが基本。甘口の九州醤油＋生姜／にんにく。紅白刺し（タテガミ重ね）で甘みとコクを足すと満足度アップ。",cook:"表面だけ強火でサッと炙るタタキ。厚めのブロックは低温調理（58〜60℃）でしっとり。",texture:"しっとり柔らか。舌に吸い付くようなきめ細かさ。"},
-      "肩ロース":{desc:"首〜肩にかけての部位。ロースに近い上質さを保ちながら、旨味はやや力強い。コスパに優れ人気。",eat:"刺身の他、胡麻ダレ・酢味噌も相性◎。ボリュームが欲しい方に。",cook:"薄めに引いてさっと炙り。筋目を断つカットでさらに柔らかく。",texture:"ロースよりやや歯応えがあり、噛むほど旨い。"},
-      "ヒレ":{desc:"腰の内側にある最も柔らかい赤身。中心のシャトーブリアンは特に希少で上品な甘み。",eat:"塩＋ごま油、または淡口の醤油で素材感を楽しむ。特別な日向け。",cook:"厚切りは低温調理一択。焼くなら強火・短時間で香り付け程度に。",texture:"非常にやわらかい。スッと噛み切れる上質食感。"},
-      "バラ":{desc:"あばら周り。赤身と脂の層が交互に入り、コクと満足感が強い。しっかりした旨味。",eat:"刺身はもちろん、ユッケ風や漬け丼も人気。濃いめタレとの相性抜群。",cook:"焼きでは脂が落ちてジューシー。煮込み・カレーでも出汁が濃く出る。",texture:"やや噛み応えがあり、赤身の旨味と脂の甘みが交互に広がる。"},
-      "フタエゴ":{desc:"皮下脂肪と赤身が層状になった希少部位。見た目が“二重”に見えることが名前の由来。",eat:"半冷凍で薄く引き、甘口醤油や辛子味噌。ロースと重ねてコントラストを楽しむのも◎。",cook:"冷やして脂を落ち着かせてからスライスすると美しい断面に。",texture:"コリコリ感＋脂のとろける甘み。噛むほど楽しい食感。"},
-      "タテガミ":{desc:"首のたてがみ下の脂（コウネ）。単体より赤身と合わせる“紅白刺し”が定番。融点が低く口溶けが非常に良い。",eat:"ロース等の赤身に1:1で重ね、甘口醤油や塩で。初心者にも食べやすい。",cook:"半冷凍の状態で薄く引くと崩れにくい。",texture:"ぷるぷる・ねっとり。後味は軽くミルキー。"},
-      "内もも":{desc:"後肢の内側。脂が少なく高タンパクでヘルシー。赤身の旨味が濃いので刺身向き。",eat:"わさび醤油や生姜醤油でさっぱり。量を食べたい方に最適。",cook:"低温調理でしっとり。薄衣のカツやタタキも好評。",texture:"引き締まった歯応え。噛むほどに旨味がにじむ。"},
-      "外もも":{desc:"後肢外側の大きな筋肉。旨味は強いが繊維が太めでやや硬い。カットで化ける部位。",eat:"薄切り刺し・ユッケ風・漬け。薬味多めが合う。",cook:"繊維を断つ方向にカット。煮込みや佃煮で深いコク。",texture:"しっかりめの噛み応え。肉らしさを楽しみたい方向け。"},
-      "ハツ":{desc:"心臓。鮮度が命でクセは少なく爽やかな旨味。ホルモンの中でも人気。",eat:"ごま油＋塩、酢味噌。軽く炙って香り付けも◎。",cook:"薄切りでサッと焼き。火を入れすぎると硬くなるので注意。",texture:"コリッと小気味よい歯応え。噛むほど旨味。"},
-      "レバー":{desc:"肝臓。濃厚で鉄分リッチ。※生食は各自治体の基準に従ってください。加熱で甘みが引き立つ。",eat:"ごま油塩／甘辛ダレ。臭みが気になる方は生姜・ニラなど香味野菜と。",cook:"血抜き→牛乳に短時間浸けて臭みケア。中心は火を通し過ぎないのがコツ。",texture:"ねっとり濃密。加熱でほろっとほどける食感に。"}
-    };
+  <aside class="right" id="panel">
+    <h1>馬刺し 部位ガイド</h1>
+    <div class="muted">部位をタップ／クリックすると、特徴とおすすめの食べ方が表示されます。</div>
+    <h2 id="title">部位を選択してください</h2>
+    <div class="sec">
+      <h3>説明</h3>
+      <p id="desc">背景の馬体図から気になる部位を選んでください。</p>
+    </div>
+    <div class="sec">
+      <h3>おすすめの食べ方</h3>
+      <p id="eat">選択した部位のおすすめをこちらに表示します。</p>
+    </div>
+  </aside>
 
-    const $ = (q, el=document) => el.querySelector(q);
-    const $$ = (q, el=document) => [...el.querySelectorAll(q)];
-    const partName = $("#partName");
-    const chip = $("#chip");
-    const content = $("#content");
-    const tabs = $$(".tab");
+<script>
+/* ---- EC向けテキスト ---- */
+const DATA = {
+  "たてがみ": {
+    desc: "首の上部の希少な白身（コウネ）。ぷるっととろける脂の甘みで、赤身と合わせると旨みが一気に花開きます。",
+    eat: "薄切りで“紅白刺し”（ロース等の赤身と重ね）に。塩＋ごま油、甘口醤油も好相性。"
+  },
+  "ネック": {
+    desc: "首まわりの赤身で、しっかりした噛みごたえと濃い旨み。刻んでネギトロ風にも人気。",
+    eat: "ユッケ風（卵黄＋ごま油＋醤油）や、たたきにして香ばしく。"
+  },
+  "肩ロース": {
+    desc: "程よいサシでやわらか＆ジューシー。脂の甘みと赤身の旨みのバランスが秀逸な人気部位。",
+    eat: "生姜醤油／にんにく醤油。軽く炙って香りを足すのも◎。"
+  },
+  "ロース": {
+    desc: "馬刺しの王道。きめ細かな赤身に上品なサシが入り、旨みと甘みが広がります。",
+    eat: "王道の生姜醤油。ネギ・ごま油を添えて香り高く。"
+  },
+  "ヒレ": {
+    desc: "最もやわらかな赤身。クセがなく上品で、贈り物にも選ばれる高評価部位。",
+    eat: "わさび醤油でシンプルに。霜降りとの食べ比べもおすすめ。"
+  },
+  "前バラ": {
+    desc: "胸〜腹前の部位。脂のコクと旨みがしっかりで、加熱料理でも満足度◎。",
+    eat: "馬丼・煮込み・焼き。甘辛ダレや味噌ダレと好相性。"
+  },
+  "フタエゴ": {
+    desc: "赤身と脂が層になった人気部位。コリコリ食感と口どけの甘みが特徴です。",
+    eat: "酢味噌・ポン酢でさっぱり。軽い炙りでも美味。"
+  },
+  "スネ": {
+    desc: "運動量が多い部位でコラーゲン豊富。煮込むほどホロっとやわらかに。",
+    eat: "すじ煮込み、シチュー、スープ系に。"
+  },
+  "外モモ": {
+    desc: "引き締まった赤身で食べ応えあり。低脂肪ながら旨みはしっかり。",
+    eat: "薄切りをさっと炙ってポン酢／生姜醤油。ユッケ風も◎。"
+  },
+  "内モモ": {
+    desc: "きめ細かな赤身でしっとり。さっぱりと上品な味わいで女性人気も高い。",
+    eat: "薄切り馬刺し＋薬味でさっぱり。わさび醤油・生姜醤油。"
+  },
+  "シンタマ": {
+    desc: "もも下部。赤身の旨み＆やわらかさのバランス良好。刺し・焼き両方で活躍。",
+    eat: "赤身刺し、軽い炙り。わさび醤油が合います。"
+  },
+  "イチボ": {
+    desc: "お尻の先端。やわらかい赤身にまろやかな脂の甘さが加わり、贅沢感のある一枚。",
+    eat: "薄切りで霜降り風に。塩＋ごま油、甘口醤油も◎。"
+  },
+  "ランプ": {
+    desc: "腰〜尻の赤身。濃厚な旨みが特徴で、刺身でもステーキでも人気の万能部位。",
+    eat: "厚めのタタキ、または厚切り馬刺しで旨みを堪能。"
+  }
+};
 
-    const groups = $$("#parts > g");
-    const visualPaths = $$(".part.visual");
-    const hitPaths = $$(".part.hit");
+/* ---- UI制御 ---- */
+const title = document.getElementById('title');
+const desc  = document.getElementById('desc');
+const eat   = document.getElementById('eat');
+const areas = Array.from(document.querySelectorAll('.area'));
+let selected = null;
 
-    let selectedKey = null;
-    let activeTab = "desc";
+areas.forEach(a=>{
+  a.setAttribute('tabindex','0');
+  a.addEventListener('click', ()=>select(a));
+  a.addEventListener('keypress', (e)=>{ if(e.key==='Enter'||e.key===' ') select(a); });
+  a.addEventListener('mouseenter', ()=>{ if(!selected) title.textContent = a.dataset.key; });
+  a.addEventListener('mouseleave', ()=>{ if(!selected) title.textContent = '部位を選択してください'; });
+});
 
-    function renderPanel(){
-      if(!selectedKey){
-        partName.textContent = "部位をタップしてください";
-        chip.textContent = "—";
-        content.innerHTML = `<h3>ガイド</h3><p>左のシルエットから部位を選ぶと、ここに「説明／食べ方／調理の仕方／食感」が表示されます。編集機能は省いてあります。</p>`;
-        return;
-      }
-      const data = DATA[selectedKey];
-      partName.textContent = selectedKey;
-      chip.textContent = `タブ：${({desc:"説明", eat:"食べ方", cook:"調理の仕方", texture:"食感"})[activeTab]}`;
-      const body = (data?.[activeTab] ?? "準備中").replace(/\n/g, "<br>");
-      content.innerHTML = `<h3>${({desc:"説明", eat:"食べ方", cook:"調理の仕方", texture:"食感"})[activeTab]}</h3><p>${body}</p>`;
-    }
+function select(a){
+  const key = a.dataset.key;
+  selected = key;
+  areas.forEach(x=>x.setAttribute('aria-selected','false'));
+  a.setAttribute('aria-selected','true');
 
-    function attachHandlers(el){
-      el.setAttribute("tabindex","0");
-      el.addEventListener("click", ()=>toggleSelect(el));
-      el.addEventListener("keypress", (e)=>{ if(e.key==="Enter"||e.key===" ") toggleSelect(el); });
-      el.addEventListener("mouseenter", ()=>{ if(!selectedKey) chip.textContent = el.parentElement.dataset.key; });
-      el.addEventListener("mouseleave", ()=>{ if(!selectedKey) chip.textContent = "—"; });
-    }
-    visualPaths.forEach(attachHandlers);
-    hitPaths.forEach(attachHandlers);
+  const data = DATA[key];
+  title.textContent = key;
+  desc.textContent  = data?.desc  ?? '—';
+  eat.textContent   = data?.eat   ?? '—';
+}
+</script>
 
-    function toggleSelect(target){
-      const key = target.parentElement.dataset.key;
-      const same = (selectedKey === key);
-      selectedKey = same ? null : key;
-      visualPaths.forEach(v=>v.setAttribute("aria-selected","false"));
-      if(!same){
-        const group = groups.find(g=>g.dataset.key===key);
-        group.querySelector(".visual").setAttribute("aria-selected","true");
-      }
-      activeTab = "desc";
-      tabs.forEach(t=>t.setAttribute("aria-selected", t.dataset.tab===activeTab));
-      renderPanel();
-    }
-
-    tabs.forEach(t=>{
-      t.addEventListener("click", ()=>{
-        activeTab = t.dataset.tab;
-        tabs.forEach(x=>x.setAttribute("aria-selected", x===t?"true":"false"));
-        renderPanel();
-      });
-    });
-
-    renderPanel();
-  </script>
 </body>
 </html>

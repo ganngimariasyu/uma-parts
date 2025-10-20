@@ -30,6 +30,7 @@
     padding: 20px 30px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     width: 320px;
+    height: fit-content;
   }
 
   #info-panel h2 {
@@ -53,13 +54,16 @@
 <body>
   <div class="svg-container">
     <svg id="horse-map" viewBox="0 0 800 400">
-      <image href="スクリーンショット-2025-10-20-203144.svg" width="800" height="400"/>
+      <!-- SVG画像を背景扱いにしてクリック領域を上に -->
+      <image href="スクリーンショット-2025-10-20-203144.svg" width="800" height="400" />
 
-      <!-- 各部位のタップ領域（だいたいの位置でOK） -->
-      <path id="tategami" d="M90,60 L210,65 L210,110 L90,100 Z" fill="transparent" />
-      <path id="neck" d="M220,100 L270,160 L230,200 L170,150 Z" fill="transparent" />
-      <path id="rosu" d="M300,120 L400,140 L400,190 L300,180 Z" fill="transparent" />
-      <path id="hire" d="M410,180 L460,190 L460,230 L410,220 Z" fill="transparent" />
+      <!-- 各部位クリックエリア -->
+      <g id="areas" style="pointer-events: all;">
+        <path id="tategami" d="M90,60 L210,65 L210,110 L90,100 Z" fill="transparent" pointer-events="all"/>
+        <path id="neck" d="M220,100 L270,160 L230,200 L170,150 Z" fill="transparent" pointer-events="all"/>
+        <path id="rosu" d="M300,120 L400,140 L400,190 L300,180 Z" fill="transparent" pointer-events="all"/>
+        <path id="hire" d="M410,180 L460,190 L460,230 L410,220 Z" fill="transparent" pointer-events="all"/>
+      </g>
     </svg>
   </div>
 
@@ -88,9 +92,13 @@
       }
     };
 
-    document.querySelectorAll("svg path").forEach(path => {
-      path.addEventListener("mouseenter", e => e.target.style.fill = "rgba(255, 100, 150, 0.3)");
-      path.addEventListener("mouseleave", e => e.target.style.fill = "transparent");
+    document.querySelectorAll("#areas path").forEach(path => {
+      path.addEventListener("mouseenter", e => {
+        e.target.style.fill = "rgba(255, 100, 150, 0.3)";
+      });
+      path.addEventListener("mouseleave", e => {
+        e.target.style.fill = "transparent";
+      });
       path.addEventListener("click", e => {
         const p = parts[e.target.id];
         if (p) {

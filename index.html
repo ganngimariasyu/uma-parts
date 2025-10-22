@@ -1,184 +1,380 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>馬肉 部位図（ズレ対策・完全修正版）</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>馬肉 部位図（編集可・自動保存）</title>
 <style>
   :root{
-    --bg:#fdeef0; --card:#fff; --ink:#d6336c; --hi:rgba(255,0,120,.28); --hi2:rgba(255,0,120,.45);
+    --bg:#ffecef;
+    --ink:#222;
+    --card:#fff;
+    --accent:#ff6fa0;
+    --accent-weak:#ffd2e1;
+    --poly:#ff6fa0aa;
+    --poly-hover:#ff3f90bb;
+    --dot:#fff;
+    --dot-edge:#ff4f9a;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:#222;font-family:"Yu Gothic","Hiragino Sans",sans-serif;}
-  .wrap{max-width:1200px;margin:28px auto;padding:0 18px;display:grid;grid-template-columns:minmax(300px,1fr) 360px;gap:24px}
-  .stage{background:#fff6;border-radius:14px;padding:12px;display:flex;justify-content:center;align-items:center}
-  .panel{background:var(--card);border-radius:14px;box-shadow:0 2px 10px #0001;padding:18px}
-  .panel h2{margin:0 0 8px;color:var(--ink);border-bottom:2px solid #f7b1b8;display:inline-block}
-  .tip{color:#666;font-size:12px}
-  svg{width:100%;height:auto;display:block}
-  .part{fill:var(--hi);cursor:pointer;transition:.15s}
-  .part:hover{fill:var(--hi2)}
-  .handle{display:none;fill:#fff;stroke:#f06;stroke-width:1.6}
-  .is-edit .handle{display:block}
-  @media (max-width:960px){ .wrap{grid-template-columns:1fr}}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";}
+  .wrap{display:grid;grid-template-columns:1fr min(400px,36vw);gap:24px;max-width:1400px;margin:0 auto;padding:18px;}
+  .stage{background:#fff;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.06);position:relative;overflow:hidden;min-height:min(75vh,900px);}
+  .svgFrame{position:absolute;inset:0;display:grid;place-items:center;touch-action:none;}
+  svg#horse{width:92%;height:auto;max-height:100%;user-select:none;pointer-events:none;}
+  /* overlay */
+  svg#overlay{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+  .region{fill:var(--poly);stroke:#0000;stroke-width:1;}
+  .region[data-active="1"]{fill:var(--poly-hover);}
+  .region:hover{filter:brightness(1.05);}
+  .labelPin{fill:#ff8fb4;opacity:.0;pointer-events:none;}
+  .dot{fill:var(--dot);stroke:var(--dot-edge);stroke-width:2;cursor:grab;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));}
+  .dot:active{cursor:grabbing}
+  .hint{position:absolute;left:12px;top:12px;background:#0009;color:#fff;padding:8px 10px;border-radius:10px;font-size:12px}
+  .right{background:var(--card);border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:12px}
+  h1{font-size:20px;margin:.2rem 0 0 .1rem}
+  .note{font-size:13px;opacity:.8}
+  .desc{background:#fff;border:1px solid #00000010;border-radius:12px;padding:14px}
+  .pill{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .chip{background:var(--accent-weak);color:#a11347;border:1px solid #ffc2d6;padding:4px 8px;border-radius:999px;font-size:12px;cursor:pointer;user-select:none}
+  .chip[data-enabled="0"]{opacity:.45;text-decoration:line-through}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{background:#fff;border:1px solid #00000020;border-radius:10px;padding:8px 10px;font-size:13px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:#ff2d82}
+  .footer{opacity:.6;font-size:12px;margin-top:auto}
+  .hidden{display:none}
+  .toast{position:fixed;inset:auto 16px 16px auto;background:#000c;color:#fff;padding:10px 12px;border-radius:10px;font-size:12px;opacity:0;transform:translateY(8px);transition:all .25s}
+  .toast.show{opacity:1;transform:none}
+  @media (max-width:960px){
+    .wrap{grid-template-columns:1fr}
+    .stage{min-height:62vh}
+    svg#horse{width:96%}
+  }
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="stage" id="stage">
+      <!-- 元画像（ユーザー提供SVG） -->
+      <div class="svgFrame">
+        <!-- あなたが貼ってくれたSVGをそのまま <svg id="horse"> として埋め込み -->
+        <!-- ※可読性のため長文は省略。実ファイルでは提供SVG全文を差し替えてください -->
+        <!-- ▼▼▼ ここにユーザー提供のSVGを入れる（開始） ▼▼▼ -->
+        <?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+ "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="612.000000pt" height="454.000000pt" viewBox="0 0 612.000000 454.000000"
+ preserveAspectRatio="xMidYMid meet">
+...
+</svg>
+        <!-- 重要：id="horse" を必ず付与 -->
+        <svg id="horse" viewBox="0 0 612 454" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+          <g transform="translate(0,454) scale(0.1,-0.1)" fill="#000" stroke="none">
+            <!-- ここにあなたが貼ってくれた巨大 <path> 群を丸ごと貼り付けてください -->
+            <!-- （メッセージだと長すぎるため省略していますが、あなたの手元のSVGそのままペーストでOK） -->
+          </g>
+        </svg>
+        <!-- ▲▲▲ ここにユーザー提供のSVGを入れる（終了） ▲▲▲ -->
 
-<div class="wrap">
-  <div class="stage">
-    <!-- 画像と当たり判定を同じviewBox上で描く（612×454に固定）-->
-    <svg id="map" viewBox="0 0 612 454" aria-label="馬肉部位図" role="img">
-      <!-- 元画像（SVG）をimageタグで埋め込み：ここはあなたのファイル名のまま -->
-      <image href="screenshot-2025-10-20-203144.svg" x="0" y="0" width="612" height="454" preserveAspectRatio="xMidYMid meet"></image>
+        <!-- クリック領域&編集用のオーバーレイ -->
+        <svg id="overlay"></svg>
+      </div>
 
-      <!-- ↓↓↓ 当たり矩形（viewBox座標で定義：縮尺してもズレない） -->
-      <!-- ※初期値は“だいたい”合わせてある。あとで微調整は下のareasを変えるだけ -->
-      <rect class="part" data-name="たてがみ"/>
-      <rect class="part" data-name="ネック"/>
-      <rect class="part" data-name="肩ロース"/>
-      <rect class="part" data-name="ロース"/>
-      <rect class="part" data-name="ヒレ"/>
-      <rect class="part" data-name="前バラ"/>
-      <rect class="part" data-name="バラ"/>
-      <rect class="part" data-name="後バラ"/>
-      <rect class="part" data-name="内モモ"/>
-      <rect class="part" data-name="外モモ"/>
-      <rect class="part" data-name="イチボ"/>
-      <rect class="part" data-name="ランプ"/>
-      <rect class="part" data-name="ラム"/>
-      <rect class="part" data-name="ブリスケ"/>
-      <rect class="part" data-name="肩バラ"/>
-      <rect class="part" data-name="フロント"/>
-      <rect class="part" data-name="スネ"/>
-      <!-- 編集用の白点（?edit=1で表示） -->
-      <circle class="handle" r="4"></circle>
-    </svg>
+      <div class="hint" id="hint"></div>
+    </div>
+
+    <aside class="right">
+      <h1>馬肉 部位図</h1>
+      <div class="note" id="modeNote">部位名にカーソル／タップで説明が表示されます。</div>
+
+      <div class="desc" id="descBox">
+        <div class="title" style="font-weight:700;font-size:18px;margin-bottom:6px;">部位を選択してください</div>
+        <div class="body" style="line-height:1.8" id="descBody">ラベル上にマウスを置くか、タップしてください。</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn primary" id="resetBtn" title="localStorage を初期化">初期データに戻す</button>
+        <button class="btn" id="exportBtn">現在の座標をエクスポート</button>
+        <button class="btn" id="importBtn">インポート</button>
+      </div>
+
+      <div class="pill" id="chips"></div>
+
+      <div class="footer">
+        <div>編集モード：<code>?edit=1</code> をURLにつけると頂点（白い点）をドラッグして調整できます（自動保存）。</div>
+      </div>
+    </aside>
   </div>
 
-  <aside class="panel">
-    <h2 id="title">馬肉 部位図</h2>
-    <p class="tip">部位にカーソル / タップで説明表示。</p>
-    <div id="desc">部位を選択してください。</div>
-  </aside>
-</div>
+  <input type="file" id="fileInput" accept="application/json" class="hidden"/>
+
+  <div class="toast" id="toast">保存しました</div>
 
 <script>
-/**
- * ■ コア修正ポイント
- *  - 当たり判定は viewBox(612×454) の座標で定義。=> 画像の拡大縮小に影響されずズレない
- *  - スマホの tap 反応も付与
- *  - ?edit=1 で白い点（現在位置）が出る（本番では出ない）
+/* ========= 設定 ========= */
+const STORAGE_KEY = 'umaPartsV1';
+const EDIT = new URL(location.href).searchParams.get('edit') === '1';
+
+/** 初期部位一覧（画像に載っているものに合わせて種まき）
+ *  ※ あくまで“初期座標”は大まか。?edit=1 で白点を動かして合わせてください。
+ *  ※ enabled=false にすれば一時的に非表示にできます。
  */
+const SEED = [
+  // 名前, 説明（簡易）, 初期ポリゴン（horse viewBox: 612x454 基準の相対座標）
+  // 座標は「大体の位置」にしてあります。編集モードで微調整を！
+  {name:'たてがみ', enabled:true,  desc:'ぷるぷる食感。コラーゲン豊富。赤身と合わせるとバランス◎。',
+    points:[[120,120],[175,120],[175,150],[120,150]]},
+  {name:'ネック',   enabled:true,  desc:'首まわりの赤身。噛むほど旨み。',
+    points:[[185,170],[235,200],[205,235],[160,205]]},
+  {name:'肩ロース', enabled:true,  desc:'肩と背の中間。赤身と脂のバランス良し。',
+    points:[[265,195],[310,210],[300,250],[255,240]]},
+  {name:'ロース',   enabled:true,  desc:'背中の王道部位。刺身・焼きで万能。',
+    points:[[330,200],[395,200],[395,230],[330,230]]},
+  {name:'ヒレ',     enabled:true,  desc:'最も柔らかい希少部位。上品な味わい。',
+    points:[[315,250],[360,250],[360,285],[315,285]]},
+  {name:'ラム',     enabled:true,  desc:'ウデの上：薄切りで。',
+    points:[[420,210],[460,220],[448,245],[410,240]]},
+  {name:'イチボ',   enabled:true,  desc:'お尻の先。赤身しっかり、脂少なめ。',
+    points:[[488,230],[515,230],[515,255],[488,255]]},
+  {name:'外モモ',   enabled:true,  desc:'後脚の外側。煮込み・スジに◎。',
+    points:[[505,255],[540,290],[515,330],[485,290]]},
+  {name:'内モモ',   enabled:true,  desc:'後脚の内側。赤身の塊、低脂肪。',
+    points:[[450,265],[490,305],[460,325],[430,285]]},
+  {name:'ピンタ',   enabled:true,  desc:'スネ上の小部位（画像の○の所）。',
+    points:[[470,256],[485,256],[485,270],[470,270]]},
+  {name:'前バラ',   enabled:true,  desc:'胸側のバラ。コクが強い。',
+    points:[[320,295],[380,295],[380,330],[320,330]]},
+  {name:'後バラ',   enabled:true,  desc:'腹側の後ろ。脂乗り良し。',
+    points:[[390,295],[430,295],[430,330],[390,330]]},
+  {name:'ブリスケ', enabled:true,  desc:'肩バラ下。濃厚な旨み。',
+    points:[[230,285],[265,330],[235,350],[210,305]]},
+  {name:'フロント', enabled:true,  desc:'前脚の付け根（画像の点線部あたり）。',
+    points:[[250,335],[285,340],[280,375],[248,368]]},
+  {name:'スネ',     enabled:true,  desc:'脚の下部。じっくり煮込みに最適。',
+    points:[[295,360],[320,360],[318,400],[292,400]]},
+  {name:'スネ(後)', enabled:true,  desc:'後脚スネ。',
+    points:[[515,360],[540,360],[538,400],[512,400]]},
+  {name:'ランプ',   enabled:true,  desc:'赤身の味がしっかり、低脂肪高たんぱく。',
+    points:[[410,330],[470,330],[470,365],[410,365]]},
+];
 
-const partsInfo = {
-  "たてがみ":"ぷるぷる食感。コラーゲン豊富。赤身と合わせてバランス◎。",
-  "ネック":"昔ながらの赤身。噛むほど旨い。ユッケや煮込みに。",
-  "肩ロース":"ほどよいサシで柔らか。刺身・すき焼き向き。",
-  "ロース":"赤身と脂のバランスが良い定番部位。馬刺しに。",
-  "ヒレ":"最も柔らかい希少部位。上品な味わい。",
-  "前バラ":"コクのある脂身。焼きや煮込みに。",
-  "バラ":"旨みが強い。煮込み料理にも◎。",
-  "後バラ":"赤身と脂が層になり、味わい深い。",
-  "内モモ":"しっとり赤身。低脂肪でヘルシー。",
-  "外モモ":"やや歯ごたえ。噛むほど旨み。",
-  "イチボ":"希少。赤身×脂のバランス良。焼きにも。",
-  "ランプ":"腰〜尻の赤身。濃い旨み。",
-  "ラム":"腰部の柔らか赤身。刺身・焼きOK。",
-  "ブリスケ":"肩下の筋肉質。煮込みでとろける。",
-  "肩バラ":"脂のコクが強い。焼肉・煮込みに。",
-  "フロント":"前脚つけ根。濃厚でスジ煮込みに。",
-  "スネ":"スジが多いが長時間煮込みでトロトロ。"
-};
+/* ========= ここから実装 ========= */
+const overlay = document.getElementById('overlay');
+const stage = document.getElementById('stage');
+const hint = document.getElementById('hint');
+const chips = document.getElementById('chips');
+const descBody = document.getElementById('descBody');
+const modeNote = document.getElementById('modeNote');
+const toast = document.getElementById('toast');
+const fileInput = document.getElementById('fileInput');
 
-// ===== viewBox座標（612×454）での矩形（x,y,w,h） =====
-// ※初期合わせ。もっとドンピシャにしたくなったらここを触るだけ
-const areas = {
-  "たてがみ": {x:130, y:80,  w:185, h:48},
-  "ネック"  : {x:205, y:140, w:210, h:90},
-  "肩ロース": {x:305, y:135, w:140, h:75},
-  "ロース"  : {x:430, y:155, w:150, h:65},
-  "ヒレ"    : {x:450, y:228, w:125, h:52},
-  "前バラ"  : {x:350, y:255, w:125, h:65},
-  "バラ"    : {x:380, y:290, w:150, h:70},
-  "後バラ"  : {x:505, y:255, w:120, h:65},
-  "内モモ"  : {x:612-190, y:235, w:85,  h:85}, // 右脚付け根内側
-  "外モモ"  : {x:612-170, y:175, w:85,  h:70},
-  "イチボ"  : {x:612-185, y:150, w:75,  h:46},
-  "ランプ"  : {x:612-220, y:215, w:90,  h:70},
-  "ラム"    : {x:612-210, y:120, w:105, h:58},
-  "ブリスケ": {x:265, y:225, w:90,  h:82},
-  "肩バラ"  : {x:320, y:195, w:115, h:83},
-  "フロント": {x:282, y:320, w:72,  h:110},
-  "スネ"    : {x:294, y:378, w:60,  h:120}
-};
+if(EDIT){
+  modeNote.textContent = '編集モード：白い点をドラッグで形を合わせると自動保存されます。ダブルタップ/ダブルクリックで頂点追加、Alt+クリックで削除。';
+}else{
+  hint.textContent = 'クリック／タップで部位の説明を表示';
+}
 
-const map = document.getElementById('map');
-const parts = [...map.querySelectorAll('.part')];
-const edit = new URLSearchParams(location.search).get('edit') === '1';
-if (edit) document.body.classList.add('is-edit');
+/** 読み込み（localStorage > seed） */
+let data = loadData();
 
-const title = document.getElementById('title');
-const desc  = document.getElementById('desc');
+/** 画面構築 */
+renderAll();
+buildChips();
 
-function paintRects(){
-  parts.forEach(r=>{
-    const name = r.dataset.name;
-    const a = areas[name];
-    if (!a) return;
-    r.setAttribute('x', a.x);
-    r.setAttribute('y', a.y);
-    r.setAttribute('width',  a.w);
-    r.setAttribute('height', a.h);
+/** ====== 関数群 ====== */
+function loadData(){
+  try{
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if(saved){
+      const obj = JSON.parse(saved);
+      // 旧バージョン対策：name をキーに seed とマージ
+      return mergeSeed(obj);
+    }
+  }catch(e){}
+  // 初回は SEED を保存して使う
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED));
+  return JSON.parse(JSON.stringify(SEED));
+}
+
+function mergeSeed(obj){
+  const byName = new Map(obj.map(o=>[o.name,o]));
+  return SEED.map(s=>{
+    const hit = byName.get(s.name);
+    return hit ? {...s, ...hit} : s;
   });
-  // 編集用白点：最後のcircleを中央に置く（代表点）
-  const h = map.querySelector('.handle');
-  if (h){
-    const a = areas["たてがみ"];
-    h.setAttribute('cx', a.x + a.w/2);
-    h.setAttribute('cy', a.y + a.h/2);
+}
+
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  showToast();
+}
+
+function showToast(){
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),900);
+}
+
+function buildChips(){
+  chips.innerHTML = '';
+  data.forEach((r,idx)=>{
+    const el = document.createElement('div');
+    el.className = 'chip';
+    el.dataset.enabled = r.enabled?1:0;
+    el.textContent = r.name;
+    el.onclick = ()=>{
+      r.enabled = !r.enabled;
+      el.dataset.enabled = r.enabled?1:0;
+      renderAll();
+      save();
+    };
+    chips.appendChild(el);
+  });
+}
+
+function renderAll(){
+  overlay.innerHTML = '';
+  overlay.setAttribute('viewBox','0 0 612 454'); // horse と同じ座標系
+  overlay.setAttribute('preserveAspectRatio','xMidYMid meet');
+
+  data.forEach((r,idx)=>{
+    if(!r.enabled) return;
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-idx', idx);
+
+    // polygon
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('class', 'region');
+    poly.setAttribute('points', r.points.map(p=>p.join(',')).join(' '));
+    poly.addEventListener('pointerenter', ()=> poly.dataset.active = '1');
+    poly.addEventListener('pointerleave', ()=> poly.dataset.active = '0');
+    poly.addEventListener('click', ()=> selectRegion(idx));
+    g.appendChild(poly);
+
+    // 編集モード：頂点
+    if(EDIT){
+      r.points.forEach((p,pi)=>{
+        const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('class','dot');
+        dot.setAttribute('r','4.5');
+        dot.setAttribute('cx', p[0]);
+        dot.setAttribute('cy', p[1]);
+        dot.style.touchAction = 'none';
+
+        let dragging=false, offX=0, offY=0;
+        dot.addEventListener('pointerdown', e=>{
+          dragging=true;
+          dot.setPointerCapture(e.pointerId);
+          offX = p[0] - clientToSvgX(e);
+          offY = p[1] - clientToSvgY(e);
+        });
+        dot.addEventListener('pointermove', e=>{
+          if(!dragging) return;
+          p[0] = clamp(clientToSvgX(e)+offX, 0, 612);
+          p[1] = clamp(clientToSvgY(e)+offY, 0, 454);
+          dot.setAttribute('cx', p[0]);
+          dot.setAttribute('cy', p[1]);
+          poly.setAttribute('points', r.points.map(p=>p.join(',')).join(' '));
+        });
+        dot.addEventListener('pointerup', e=>{
+          dragging=false; save();
+        });
+
+        // 追加/削除
+        poly.addEventListener('dblclick', ev=>{
+          const nx = clientToSvgX(ev), ny = clientToSvgY(ev);
+          // 一番近い辺の後ろに追加
+          const ins = findInsertIndex(r.points, [nx,ny]);
+          r.points.splice(ins,0,[nx,ny]);
+          renderAll(); save();
+        });
+        dot.addEventListener('click', ev=>{
+          if(ev.altKey && r.points.length>3){
+            r.points.splice(pi,1);
+            renderAll(); save();
+          }
+        });
+
+        g.appendChild(dot);
+      });
+    }
+
+    overlay.appendChild(g);
+  });
+}
+
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+function clientToSvgX(ev){ return clientToSvg(ev)[0]; }
+function clientToSvgY(ev){ return clientToSvg(ev)[1]; }
+function clientToSvg(ev){
+  const rect = overlay.getBoundingClientRect();
+  const x = (ev.clientX - rect.left) / rect.width * 612;
+  const y = (ev.clientY - rect.top)  / rect.height* 454;
+  return [x,y];
+}
+
+function findInsertIndex(pts, p){
+  // もっとも近い辺の後ろに挿入
+  let best=0, bestD=Infinity;
+  for(let i=0;i<pts.length;i++){
+    const a = pts[i], b = pts[(i+1)%pts.length];
+    const d = pointToSegmentDist(p,a,b);
+    if(d < bestD){ bestD=d; best=i+1; }
   }
+  return best;
+}
+function pointToSegmentDist(p,a,b){
+  const [px,py]=p,[ax,ay]=a,[bx,by]=b;
+  const vx=bx-ax, vy=by-ay;
+  const wx=px-ax, wy=py-ay;
+  const t = Math.max(0, Math.min(1, (vx*wx+vy*wy)/(vx*vx+vy*vy||1)));
+  const cx = ax + t*vx, cy = ay + t*vy;
+  const dx = px-cx, dy=py-cy;
+  return Math.hypot(dx,dy);
 }
 
-function bindEvents(){
-  const activate = (name)=>{
-    title.textContent = name;
-    desc.textContent  = partsInfo[name] || "説明登録なし。";
+function selectRegion(idx){
+  const r = data[idx];
+  document.querySelectorAll('.region').forEach(el=>el.dataset.active='0');
+  const g = overlay.querySelector(`g[data-idx="${idx}"] polygon`);
+  if(g) g.dataset.active='1';
+  descBody.innerHTML = `<b>${r.name}</b><br>${r.desc||'—'}`;
+}
+
+/* ============ UI ============ */
+document.getElementById('resetBtn').onclick = ()=>{
+  if(!confirm('localStorage の座標を初期データに戻します。よろしいですか？')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  data = loadData();
+  renderAll(); buildChips();
+};
+
+document.getElementById('exportBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'uma-parts.json';
+  a.click();
+};
+
+document.getElementById('importBtn').onclick = ()=> fileInput.click();
+fileInput.onchange = (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ()=>{
+    try{
+      const obj = JSON.parse(rd.result);
+      if(!Array.isArray(obj)) throw new Error('配列ではありません');
+      data = mergeSeed(obj);
+      save(); renderAll(); buildChips();
+      alert('読み込みました');
+    }catch(err){
+      alert('JSONが不正です');
+    }
   };
-  parts.forEach(r=>{
-    const name = r.dataset.name;
-    const fire = ()=>activate(name);
-    r.addEventListener('click', fire);
-    r.addEventListener('touchstart', (e)=>{e.preventDefault(); fire();}, {passive:false});
-  });
-}
-
-paintRects();
-bindEvents();
-
-/* --- ここから下は「微調整を一瞬でやる用」：本番動作には影響なし ------------------
-   ?nudge=1 で起動。矩形の上にカーソルを置き、矢印キーで1px、Shift+矢印で5px移動。
-   位置は console に出すだけ（必要なら値をここに貼り戻せばOK）。
----------------------------------------------------------------------------- */
-const nudge = new URLSearchParams(location.search).get('nudge') === '1';
-if (nudge){
-  let current = null;
-  parts.forEach(el=>{
-    el.addEventListener('mouseenter',()=> current = el);
-    el.addEventListener('mouseleave',()=> current = null);
-  });
-  window.addEventListener('keydown',e=>{
-    if(!current) return;
-    const a = areas[current.dataset.name];
-    const step = e.shiftKey ? 5 : 1;
-    if (e.key === 'ArrowLeft')  a.x -= step;
-    if (e.key === 'ArrowRight') a.x += step;
-    if (e.key === 'ArrowUp')    a.y -= step;
-    if (e.key === 'ArrowDown')  a.y += step;
-    paintRects();
-    console.log(current.dataset.name, a);
-  });
-}
+  rd.readAsText(f);
+};
 </script>
 </body>
 </html>
